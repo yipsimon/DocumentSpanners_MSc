@@ -109,6 +109,63 @@ def algop():		return [("(", expression, [".","|"], expression, ")"), ("(", expre
 def varalg(): return "{", letter ,":", expression,"}"
 def letter():	return _(r'[a-z]')
 '''
+class automata():
+	def __init__(self,startnode,endnode,value):
+		self.start = startnode
+		self.end = [endnode]
+		self.lastnum = endnode
+		self.states = set([startnode,endnode])
+		self.transition = {startnode: [(endnode,value)]}	
+
+	def initialise(self):
+		self.end = []
+		self.lastnum = 0
+		self.states = set([0])
+		self.transition = {0: []}			
+
+	def renumber(self,num):
+		self.start += num
+		temp = []
+		for nodes in self.end:
+			temp.append(nodes+num)
+		self.end = temp
+		temp = set([])
+		for nodes in self.states:
+			num1 = nodes+num
+			temp.add(num1)
+		self.states = temp
+		self.lastnum = num1
+		temp = {}
+		for key, item in self.transition.iteritems():
+			temp[key+num] = []
+			for tup in item:
+				ntup = (tup[0]+num,tup[1])
+				temp[key+num].append(ntup)
+		self.transition = temp
+
+	def addedge(self,start,dest,value):
+		tup = (dest,value)
+		self.states = self.states | {start,dest}
+		self.transition[start].append(tup)
+
+	def union(self,auto1):
+		self.renumber(1)
+		self.addedge(0,1,'/ety')
+		self.start = 0
+		count = self.lastnum+1
+		self.addedge(0,count,'/ety')
+		auto1.renumber(count)
+		self.end.extend(auto1.end)
+		self.states = self.states | auto1.states
+		for key, item in auto1.transition.iteritems():
+			self.transition[key].extend(item)
+
+	def printauto(self):
+		print ('start',self.start)
+		print ('end',self.end)
+		print ('states',self.states)
+		print ('transition',self.transition)
+
 
 
 
@@ -119,46 +176,64 @@ class formVisitor(PTNodeVisitor):
 
 	def visit_letter(self, node, children):
 		global count
+		'''
 		if self.debug:
 			print ('Converting edge {}'.format(node.value))
 			print (count)
-			count += 1
 		let = str(node.value)
-		tup = (let+'s',let+'f',let)
+		tup = (str(count)+let+'s',str(count+1)+let+'f',let)
+		count += 2
 		return [tup]
+		'''
+		auto = automata(0,1,node.value)
+		
+		return auto
+
 
 	def visit_union(self, node, children):
+		'''
 		templist = []
 		#print (len(children))
 		global count
 		if self.debug:
 			print ('Converting list {}'.format(node.value))
 			print (count)
-			count += 1
 		for i in range(0,len(children),2):
 			#print (i)
 			#print (children[i])
 
 			if isinstance(children[i], list):
-				utup1 = ('u'+children[i][0][0][:-1]+children[i+1][0][0][:-1],children[i][0][0],"empty")
-				utup2 = ('u'+children[i][0][0][:-1]+children[i+1][0][0][:-1],children[i+1][0][0],"empty")
+				#utup1 = ('u'+children[i][0][0][:-1]+children[i+1][0][0][:-1],children[i][0][0],"empty")
+				#utup2 = ('u'+children[i][0][0][:-1]+children[i+1][0][0][:-1],children[i+1][0][0],"empty")
+				utup1 = ('u'+str(count)+'s',children[i][0][0],"empty")
+				utup2 = ('u'+str(count)+'s',children[i+1][0][0],"empty")
+				#utup2 = ('u'+children[i][0][0][:-1]+children[i+1][0][0][:-1],children[i+1][0][0],"empty")
 				#if self.debug:
 				#	print ('Converting edge {}'.format(utup))
 				templist.append(utup1)
 				templist.append(utup2)
 				templist.extend(children[i])
 				templist.extend(children[i+1])
+				count += 1
 
 
 		return templist
-
+		'''
+		auto = automata(0,1,'a')
+		auto.initialise()
+		for i in range(len(children)):
+			auto.union(children[i])
+		return auto
+	'''
 	def visit_concat(self, node, children):
 		templist = []
 
 		for i in range(0, len(children), 2):
 			if isinstance(children[i], list):
 				templist.extend(children[i])
-				startnode = children[i+1][0][0]
+				for item in children[i+1]:
+					if item[0][-1] == 's':
+						startnode = item[0]
 				for item in children[i]:
 					if item[1][-1] == 'f':
 						utup = (item[1],startnode,"empty")
@@ -167,13 +242,17 @@ class formVisitor(PTNodeVisitor):
 
 		return templist	
 
+	'''
+
 
 
 # Parsing
 parser = ParserPython(formula, debug=True) #, reduce_tree = True)
-input_regex = '((a|b)|(c|d))'
+input_regex = '(a|b)'
 parse_tree = parser.parse(input_regex)
 result = visit_parse_tree(parse_tree, formVisitor(debug=True))
+
+result.printauto()
 
 print("{} = {}".format(input_regex, result))
 '''
