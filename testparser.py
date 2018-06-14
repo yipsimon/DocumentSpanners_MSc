@@ -92,7 +92,7 @@ def varconfig():	return ["{", letter, ":", statement, "}", (varconfig,ZeroOrMore
 def symb():	return ["*","+"]
 def letter():	return _(r'[a-z]')
 '''
-
+'''
 def formula():		return OneOrMore(expression)
 def expression():	return ["\ety", letter, concat, star, union, plus, varconfig]
 def letter():	return _(r'[a-z]')
@@ -101,7 +101,7 @@ def star(): return "(", expression, ")","*"
 def union(): return "(", expression ,"|", expression,")"
 def plus(): return "(", expression, ")","+"
 def varconfig(): return "{", letter ,":", expression,"}"
-
+'''
 '''
 def formula():		return OneOrMore(expression)
 def expression():	return ["\ety", letter, algop, varalg]
@@ -109,6 +109,16 @@ def algop():		return [("(", expression, [".","|"], expression, ")"), ("(", expre
 def varalg(): return "{", letter ,":", expression,"}"
 def letter():	return _(r'[a-z]')
 '''
+def formula():		return OneOrMore(expression)
+def expression():	return [concat, union, plus, varconfig, brackets,letter]
+def letter():	return [_(r'[a-z]'), "\ety"]
+def concat():	return letter, OneOrMore(".", expression)
+def union(): return letter, OneOrMore("|", expression)
+def plus(): return letter,"+"
+def varconfig(): return "{", letter ,":", expression,"}"
+def brackets():	return "(", expression, ")"
+
+
 class automata():
 	def __init__(self,startnode,endnode,value):
 		self.start = startnode
@@ -117,11 +127,13 @@ class automata():
 		self.states = set([startnode,endnode])
 		self.transition = {startnode: [(endnode,value)]}	
 
+	'''
 	def initialise(self):
 		self.end = []
 		self.lastnum = 0
 		self.states = set([0])
-		self.transition = {0: []}			
+		self.transition = {}			
+	'''
 
 	def renumber(self,num):
 		self.start += num
@@ -144,9 +156,19 @@ class automata():
 		self.transition = temp
 
 	def addedge(self,start,dest,value):
+		#print ('start',start)
+		#print ('dest',dest)
+		#print ('value',value)
 		tup = (dest,value)
 		self.states = self.states | {start,dest}
+		#print ('states',self.states)
+		#print ('transition',self.transition)
+		if not self.transition.has_key(start):
+			self.transition[start] = []
 		self.transition[start].append(tup)
+		#print ('transition',self.transition)
+		print('ADDEDGE',start,dest,value)
+		self.printauto()
 
 	def union(self,auto1):
 		self.renumber(1)
@@ -158,7 +180,10 @@ class automata():
 		self.end.extend(auto1.end)
 		self.states = self.states | auto1.states
 		for key, item in auto1.transition.iteritems():
+			if not self.transition.has_key(key):
+				self.transition[key] = []
 			self.transition[key].extend(item)
+		self.printauto()
 
 	def printauto(self):
 		print ('start',self.start)
@@ -185,8 +210,9 @@ class formVisitor(PTNodeVisitor):
 		count += 2
 		return [tup]
 		'''
+		print ('LETTER')
 		auto = automata(0,1,node.value)
-		
+		auto.printauto()
 		return auto
 
 
@@ -219,9 +245,12 @@ class formVisitor(PTNodeVisitor):
 
 		return templist
 		'''
-		auto = automata(0,1,'a')
-		auto.initialise()
-		for i in range(len(children)):
+		print ('UNION')
+		auto = children[0]
+		print ('children',len(children))
+		auto.printauto()
+		for i in range(1,len(children)):
+			children[i].printauto()
 			auto.union(children[i])
 		return auto
 	'''
@@ -248,7 +277,7 @@ class formVisitor(PTNodeVisitor):
 
 # Parsing
 parser = ParserPython(formula, debug=True) #, reduce_tree = True)
-input_regex = '(a|b)'
+input_regex = 'a|(b|c)'
 parse_tree = parser.parse(input_regex)
 result = visit_parse_tree(parse_tree, formVisitor(debug=True))
 
