@@ -1,4 +1,7 @@
-trans = {0:[]}
-tup = (1,'/ety')
-trans[0].append(tup)
-print (trans)
+temp = [1,2,3,4,5]
+
+print temp
+
+temp = []
+
+print temp

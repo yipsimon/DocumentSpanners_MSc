@@ -117,7 +117,18 @@ def union(): return letter, OneOrMore("|", expression)
 def plus(): return letter,"+"
 def varconfig(): return "{", letter ,":", expression,"}"
 def brackets():	return "(", expression, ")"
-
+'''
+def formula():		return OneOrMore(expression)
+def expression():	return [concat, union, varconfig, brackets, letter]
+#def relations():	return [concat, union, plus]
+def letter():	return [_(r'[a-z]'), "\ety", varconfig, plus]
+def alphabet():	return _(r'[a-z]')
+def concat():	return letter, OneOrMore(".", expression)
+def union(): return letter, OneOrMore("|", expression)
+def plus(): return letter,"+"
+def varconfig(): return "[", alphabet ,":", letter,"]"
+def brackets():	return "(", expression, ")"
+'''
 
 class automata():
 	def __init__(self,startnode,endnode,value):
