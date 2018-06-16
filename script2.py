@@ -22,7 +22,13 @@ class automata():
 		self.start = startnode
 		self.end = endnode
 		self.states = set([startnode,endnode])
-		self.transition = {startnode: [(endnode,value)]}	
+		self.transition = {str(startnode): [(endnode,value)], str(endnode): []}
+
+	def reset(self):
+		self.start = 0
+		self.end = 0
+		self.states = set([])
+		self.transition = {}
 
 	def renumber(self,num):
 		self.start += num
@@ -35,20 +41,21 @@ class automata():
 		self.lastnum = num1
 		temp = {}
 		for key, item in self.transition.iteritems():
-			temp[key+num] = []
+			temp[str(int(key)+num)] = []
 			for tup in item:
 				ntup = (tup[0]+num,tup[1])
-				temp[key+num].append(ntup)
+				temp[str(int(key)+num)].append(ntup)
 		self.transition = temp
 
 	def addedge(self,start,dest,value):
 		tup = (dest,value)
 		if dest > self.end:
 			self.end = dest
+			self.transition[str(dest)] = []
 		self.states = self.states | {start,dest}
-		if not self.transition.has_key(start):
-			self.transition[start] = []
-		self.transition[start].append(tup)
+		if not self.transition.has_key(str(start)):
+			self.transition[str(start)] = []
+		self.transition[str(start)].append(tup)
 		#print('ADDEDGE',start,dest,value)
 		#self.printauto()
 
@@ -64,9 +71,9 @@ class automata():
 
 		self.states = self.states | auto1.states
 		for key, item in auto1.transition.iteritems():
-			if not self.transition.has_key(key):
-				self.transition[key] = []
-			self.transition[key].extend(item)
+			if not self.transition.has_key(str(key)):
+				self.transition[str(key)] = []
+			self.transition[str(key)].extend(item)
 		
 		#self.printauto()
 
@@ -76,9 +83,9 @@ class automata():
 		auto1.renumber(self.end)
 		self.states = self.states | auto1.states
 		for key, item in auto1.transition.iteritems():
-			if not self.transition.has_key(key):
-				self.transition[key] = []
-			self.transition[key].extend(item)
+			if not self.transition.has_key(str(key)):
+				self.transition[str(key)] = []
+			self.transition[str(key)].extend(item)
 		self.end = auto1.end
 		#self.printauto()
 
@@ -133,6 +140,8 @@ class formVisitor(PTNodeVisitor):
 		for i in range(1,len(children)):
 			children[i].printauto()
 			auto.union(children[i])
+
+		auto.printauto()
 		return auto
 	
 	def visit_concat(self, node, children):
@@ -143,24 +152,31 @@ class formVisitor(PTNodeVisitor):
 		for i in range(1,len(children)):
 			children[i].printauto()
 			auto.concat(children[i])
+
+		auto.printauto()
 		return auto
 	
 	def visit_plus(self, node, children):
 		print ('PLUS')
 		auto = children[0]
 		auto.plus()
+
+		auto.printauto()
 		return auto
 
 	def visit_star(self, node, children):
 		print ('STAR')
 		auto = children[0]
 		auto.star()
+
+		auto.printauto()
 		return auto
 
 	def visit_varconfig(self, node, children):
 		print ('VARCONFIG')
 		auto = children[1]
 		auto.varconfig(children[0])
+		
 		auto.printauto()
 		return auto
 
@@ -168,7 +184,7 @@ def main():
 	# Parsing
 	#different alg relation next to each other i.e a*|b require brackets (a*)|b
 	parser = ParserPython(formula, debug=True) #, reduce_tree = True)
-	input_regex = "[epsi] | ((a*) & b)"
+	input_regex = "[x:(a&b)]"
 	#input_regex = raw_input('Enter regex formula: ')
 	parse_tree = parser.parse(input_regex)
 	result = visit_parse_tree(parse_tree, formVisitor(debug=True))

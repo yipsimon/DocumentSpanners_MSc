@@ -55,10 +55,10 @@ functional = 1
 
 seenlist = {'q0'}
 todolist = {'q0'}
-#print openlist
-#print closelist
-#print seenlist
-#print todolist
+print openlist
+print closelist
+print seenlist
+print todolist
 #time.sleep(5)
 
 while todolist:
