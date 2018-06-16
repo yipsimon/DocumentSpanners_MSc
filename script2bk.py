@@ -6,9 +6,9 @@ from arpeggio import ParserPython
 import sys
 #dot -Tpng -O .dot
 
-def alphabet():	return [_(r'[a-z]'),  "[epsi]"]
+def alphabet():	return _(r'[a-z]')
 def varconfig(): 	return "[", _(r'[a-z]') ,":", expression,"]"
-def terminals():	return [alphabet, varconfig, ("(", expression, ")")]
+def terminals():	return [alphabet, "\ety", varconfig, ("(", expression, ")")]
 def plus(): 		return terminals,"+"
 def star():			return terminals,"*"
 def concat():		return terminals, OneOrMore("&", terminals)
@@ -20,13 +20,17 @@ def formula():		return OneOrMore(expression)
 class automata():
 	def __init__(self,startnode,endnode,value):
 		self.start = startnode
-		self.end = endnode
+		self.end = set([endnode])
+		self.lastnum = endnode
 		self.states = set([startnode,endnode])
 		self.transition = {startnode: [(endnode,value)]}	
 
 	def renumber(self,num):
 		self.start += num
-		self.end += num
+		temp = set([])
+		for nodes in self.end:
+			temp.add(nodes+num)
+		self.end = temp
 		temp = set([])
 		for nodes in self.states:
 			num1 = nodes+num
@@ -43,71 +47,75 @@ class automata():
 
 	def addedge(self,start,dest,value):
 		tup = (dest,value)
-		if dest > self.end:
-			self.end = dest
+		if dest > self.lastnum:
+			self.lastnum = dest
 		self.states = self.states | {start,dest}
 		if not self.transition.has_key(start):
 			self.transition[start] = []
 		self.transition[start].append(tup)
-		#print('ADDEDGE',start,dest,value)
-		#self.printauto()
+		print('ADDEDGE',start,dest,value)
+		self.printauto()
 
 	def union(self,auto1):
 		self.renumber(1)
+		self.addedge(0,1,'/ety')
 		self.start = 0
-		auto1.renumber(self.end+1)
-		lastnode = auto1.end+1
-		self.addedge(self.end,lastnode,'[epsi]')
-		self.addedge(auto1.end,lastnode,'[epsi]')
-		self.addedge(0,1,'[epsi]')
-		self.addedge(0,auto1.start,'[epsi]')
-
+		count = self.lastnum+1
+		self.addedge(0,count,'/ety')
+		auto1.renumber(count)
+		self.end = self.end | auto1.end
+		self.lastnum = auto1.lastnum
 		self.states = self.states | auto1.states
 		for key, item in auto1.transition.iteritems():
 			if not self.transition.has_key(key):
 				self.transition[key] = []
 			self.transition[key].extend(item)
-		
-		#self.printauto()
+
+		self.printauto()
 
 	def concat(self,auto1):
-		#or
-		self.addedge(self.end,self.end+1,'[epsi]')
-		auto1.renumber(self.end)
+		count = self.lastnum+1
+		auto1.renumber(count)
+		for node in self.end:
+			self.addedge(node,count,'/ety')
+		self.end = self.end | auto1.end
+		self.lastnum = auto1.lastnum
 		self.states = self.states | auto1.states
 		for key, item in auto1.transition.iteritems():
 			if not self.transition.has_key(key):
 				self.transition[key] = []
 			self.transition[key].extend(item)
-		self.end = auto1.end
-		#self.printauto()
 
+		self.printauto()
 
 	def plus(self):
-		self.addedge(self.end,0,'[epsi]')
+		for node in self.end:
+			self.addedge(node,0,'/ety')
 		self.renumber(1)
 		self.start = 0
-		self.addedge(0,1,'[epsi]')
-		self.addedge(self.end,self.end+1,'[epsi]')
-		self.addedge(0,self.end,'[epsi]')
-		#self.printauto()
+		self.addedge(0,1,'/ety')
+
+		self.printauto()
 
 	def star(self):
-		self.addedge(self.end,0,'[epsi]')
+		for node in self.end:
+			self.addedge(node,0,'/ety')
 		self.renumber(1)
 		self.start = 0
-		self.addedge(0,1,'[epsi]')
-		self.addedge(self.end,self.end+1,'[epsi]')
-		self.addedge(0,self.end,'[epsi]')
-		#self.printauto()		
+		self.addedge(0,1,'/ety')
+		self.end = self.end | set([0])
+		self.printauto()		
 
 	def varconfig(self,alpha):
 		self.renumber(1)
 		self.start = 0
+		last = self.lastnum+1
 		self.addedge(0,1,str(alpha)+'+')
-		self.addedge(self.end,self.end+1,str(alpha)+'-')
+		for node in self.end:
+			self.addedge(node,last,str(alpha)+'-')
+		self.end = self.end | set([last])
 
-		#self.printauto()
+		self.printauto()
 
 	def printauto(self):
 		print ('start',self.start)
@@ -166,14 +174,14 @@ class formVisitor(PTNodeVisitor):
 
 def main():
 	# Parsing
-	#different alg relation next to each other i.e a*|b require brackets (a*)|b
+	#different alg relation require brackets
 	parser = ParserPython(formula, debug=True) #, reduce_tree = True)
-	input_regex = "[epsi] | ((a*) & b)"
+	input_regex = "a+"
 	#input_regex = raw_input('Enter regex formula: ')
 	parse_tree = parser.parse(input_regex)
 	result = visit_parse_tree(parse_tree, formVisitor(debug=True))
 
-	#result.printauto()
+	result.printauto()
 	return result
 	#print("{} = {}".format(input_regex, result))
 
