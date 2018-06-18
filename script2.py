@@ -21,8 +21,9 @@ class automata():
 	def __init__(self,startnode,endnode,value):
 		self.start = startnode
 		self.end = endnode
+		self.varstates = set([])
 		self.states = set([startnode,endnode])
-		self.transition = {str(startnode): [(endnode,value)], str(endnode): []}
+		self.transition = {startnode: [(endnode,value)], endnode: []}
 
 	def reset(self):
 		self.start = 0
@@ -41,21 +42,21 @@ class automata():
 		self.lastnum = num1
 		temp = {}
 		for key, item in self.transition.iteritems():
-			temp[str(int(key)+num)] = []
+			temp[int(key)+num] = []
 			for tup in item:
 				ntup = (tup[0]+num,tup[1])
-				temp[str(int(key)+num)].append(ntup)
+				temp[int(key)+num].append(ntup)
 		self.transition = temp
 
 	def addedge(self,start,dest,value):
 		tup = (dest,value)
 		if dest > self.end:
 			self.end = dest
-			self.transition[str(dest)] = []
+			self.transition[dest] = []
 		self.states = self.states | {start,dest}
-		if not self.transition.has_key(str(start)):
-			self.transition[str(start)] = []
-		self.transition[str(start)].append(tup)
+		if not self.transition.has_key(start):
+			self.transition[start] = []
+		self.transition[start].append(tup)
 		#print('ADDEDGE',start,dest,value)
 		#self.printauto()
 
@@ -68,12 +69,12 @@ class automata():
 		self.addedge(auto1.end,lastnode,'[epsi]')
 		self.addedge(0,1,'[epsi]')
 		self.addedge(0,auto1.start,'[epsi]')
-
 		self.states = self.states | auto1.states
+		self.varstates = self.varstates | auto1.varstates
 		for key, item in auto1.transition.iteritems():
-			if not self.transition.has_key(str(key)):
-				self.transition[str(key)] = []
-			self.transition[str(key)].extend(item)
+			if not self.transition.has_key(key):
+				self.transition[key] = []
+			self.transition[key].extend(item)
 		
 		#self.printauto()
 
@@ -82,10 +83,11 @@ class automata():
 		self.addedge(self.end,self.end+1,'[epsi]')
 		auto1.renumber(self.end)
 		self.states = self.states | auto1.states
+		self.varstates = self.varstates | auto1.varstates
 		for key, item in auto1.transition.iteritems():
-			if not self.transition.has_key(str(key)):
-				self.transition[str(key)] = []
-			self.transition[str(key)].extend(item)
+			if not self.transition.has_key(key):
+				self.transition[key] = []
+			self.transition[key].extend(item)
 		self.end = auto1.end
 		#self.printauto()
 
@@ -111,6 +113,7 @@ class automata():
 	def varconfig(self,alpha):
 		self.renumber(1)
 		self.start = 0
+		self.varstates.add(str(alpha))
 		self.addedge(0,1,str(alpha)+'+')
 		self.addedge(self.end,self.end+1,str(alpha)+'-')
 
@@ -119,6 +122,7 @@ class automata():
 	def printauto(self):
 		print ('start',self.start)
 		print ('end',self.end)
+		print ('varstates',self.varstates)
 		print ('states',self.states)
 		print ('transition',self.transition)
 
@@ -184,12 +188,12 @@ def main():
 	# Parsing
 	#different alg relation next to each other i.e a*|b require brackets (a*)|b
 	parser = ParserPython(formula, debug=True) #, reduce_tree = True)
-	input_regex = "[x:(a&b)]"
-	#input_regex = raw_input('Enter regex formula: ')
+	input_regex = "(a*) & [x: (a|b) ] & c"
+	input_regex = raw_input('Enter regex formula: ')
 	parse_tree = parser.parse(input_regex)
 	result = visit_parse_tree(parse_tree, formVisitor(debug=True))
 
-	#result.printauto()
+	result.printauto()
 	return result
 	#print("{} = {}".format(input_regex, result))
 
