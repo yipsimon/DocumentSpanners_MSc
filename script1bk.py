@@ -25,12 +25,11 @@ def printgraph(auto,mode):
 		name = 'automata'
 	elif mode == 2:
 		name = 'Agraph'
-
-	digraph = functools.partial(gv.Digraph, filename=name)
+	digraph = functools.partial(gv.Digraph, filename=name, format='dot')
 	g = digraph()
 	g.attr(rankdir='LR', size='8,5')
 	g.attr('node', shape='doublecircle')
-	print 'end',auto.end
+	
 	add_nodes(g, [str(auto.end)])
 	g.attr('node', shape='circle')
 	edges = []
@@ -45,7 +44,6 @@ def printgraph(auto,mode):
 	
 	add_edges(g, edges)
 	#print g
-	g.format = 'pdf'
 	g.view()
 
 
@@ -171,7 +169,6 @@ def functionalitychk(auto):
 print 'Welcome to prototype 1, select your functions:'
 print 'Option 1 : enter regex formula'
 print 'Option 2 : Read from existing file'
-print 'Option 3 : Join'
 x = input("Select: ")
 while 1:
 	if x == 1:
@@ -182,12 +179,6 @@ while 1:
 		autom = readauto()
 		print 'automaton'
 		autom.printauto()
-		break
-	elif x == 3:
-		autom = sc2.main()
-		autom2 = sc2.main()
-		print 'automaton2',autom2.printauto()
-		print 'automaton',autom.printauto()
 		break
 	else:
 		print 'error try again'
@@ -203,222 +194,171 @@ print 'openlist',oplist
 print 'closelist',clolist
 print 'varstates',varstates
 
-def chkexist(graph,pos,node):
-	if not graph[pos].has_key(node):
-		graph[pos][node] = set([])
-
-def repeat(auto,graph,i,j,node):
-	listedges = auto.transition[node]
-	ext = ['+','-']
-	for edge in listedges:
-		if (edge[1][-1] in ext) or (edge[1] == '[epsi]'):
-			chkexist(graph,i+1,edge[0])
-			graph[i+1][edge[0]].add(j)
-			repeat(auto,graph,i,j,edge[0])
-
 graphing = {}
 regraph = {}
 
-for i in range(len(inputstr)):
-	regraph[i] = {}
+for i in range(-1,len(inputstr)):
 	graphing[i] = {}
 
-regraph[len(inputstr)] = {}
-graphing[-1] = {}
+for i in range(1,len(inputstr)+1):
+	regraph[i] = {}
 
-#all possible paths
-ext = ['+','-']
-node = set([])
-for i in range(len(inputstr)):
-	find = 0
-	if i == 0:
-		for key, edges in autom.transition.iteritems():
-			print 'key',key
-			print 'edges',edges
-			for edge in edges:
-				print 'edge',edge
-				if edge[1] == inputstr[i]:
-					print 'true'
-					chkexist(regraph,i+1,edge[0])
-					regraph[i+1][edge[0]].add(key)
-					node.add(edge[0])
-					find = 1
-			
-			if find == 1:
-				for edge in edges:
-					if (edge[1][-1] in ext) or (edge[1] == '[epsi]'):
-						#print 'extra'
-						repeat(autom,regraph,i,key,key)
-			print 'regraph',regraph
-			
-	else:
-		#print 'node',node
-		temp = set([])
-		for key in node:
-			print 'key',key
-			edges = autom.transition[key]
-			print 'edges',edges
-			for edge in edges:
-				print 'edge',edge
-				if edge[1] == inputstr[i] or edge[1] == '[epsi]':
-					print 'true'
-					chkexist(regraph,i+1,edge[0])
-					regraph[i+1][edge[0]].add(key)
-					temp.add(edge[0])
-					find = 1
-			
-			if find == 1:
-				for edge in edges:
-					if (edge[1][-1] in ext) or (edge[1] == '[epsi]'):
-						print 'extra'
-						repeat(autom,regraph,i,key,key)
-		node = temp
+def chkexist(graph,cpos,node):
+	if not graph[cpos].has_key(node):
+		graph[cpos][node] = []
+
+def add(graph,cpos,start,edge):
+	temp = set(graph[cpos][start])
+	temp = temp | {edge}
+	graph[cpos][start] = list(temp)
 
 
-print 'regraph',regraph
-
-states = regraph[len(inputstr)][int(autom.end)]
-for item in states:
-	chkexist(graphing,len(inputstr)-1,item)
-	graphing[len(inputstr)-1][item].add(int(autom.end))
-print 'states',states
-print 'graphing',graphing
-
-
-for i in range(len(inputstr)-1,0,-1):
-	print i,'i'
-	temp = set([])
-	for node in states:
-		edges = regraph[i][node]
-		print 'edges',edges
-		for edge in edges:
-			print 'edge',edge
-			chkexist(graphing,i-1,edge)
-			print 'graphing',graphing
-			graphing[i-1][edge].add(node)
-			temp.add(edge)
-	states = temp
-
-#print 'graphing',graphing
-#print 'states',states
-graphing[-1][0] = states
-print 'graphing',graphing
-
-finalgraph = {}
-
-def ghaskey(graph,node):
-	if not graph.has_key(node):
-		graph[node] = []
-
-for key, item in graphing.iteritems():
-	for key2, item2 in item.iteritems():
-		for item3 in item2:
-			if key == -1:
-				node1 = 'q0'
-			else:
-				node1 = (key,key2)
-			node2 = (key+1,item3)
-			value = varstates[item3]
-			ghaskey(finalgraph,node1)
-			finalgraph[node1].append([node2,value])
-
-print finalgraph
-enode = '('+str(len(inputstr))+', '+str(autom.end)+')'
-autograph = sc2.automata(0,0,0)
-autograph.reset()
-autograph.start = 'q0'
-autograph.end = str(enode)
-autograph.transition = finalgraph
-printgraph(autograph,1)
-
-
-s = {}
-avali = {}
-edging = {}
-
-for i in range(-1,3):
-	s[i] = set([])
-	edging[i] = {}
-	avali[i] = []
-
-s[-1].add(0)
-def haskey(graph,node):
-	if not graph.has_key(node):
-		graph[node] = set([])
-
-
-def minString(num):
-	tempedge = {}
-	letter = []
-	last = []
-	leng = len(varstates[0])
-	for i in range(num,2):
-		for item1 in s[i]:
-			for item in graphing[i][int(item1)]:
-				temp = varstates[int(item)]
-				if not temp in avali[i]:
-					avali[i].append(temp)
-				haskey(tempedge,str(temp))
-				tempedge[str(temp)].add(item)
-				edging[i] = tempedge
-
-		for j in range(leng-1,0,-1):
-			avali[i].sort(key=lambda tup: tup[j])
-		print 'avali',avali
-		print 'tempedge',tempedge
-
-		letter.append(avali[i][0])
-
-		print 'letter',letter
-
-		s[i+1] = s[i+1] | tempedge[str(avali[i][0])]
-		print 's',s
-		print '\n'
-
-	for j in range(leng):
-		last.append(['c'])
-	letter.extend(last)
-	return letter
-
-k = minString(-1)
-print k
-print 'edging',edging
-
-def nextString(word):
-	print 'start nextString'
-	output = word
-	output.pop()
-	for i in range(1,-2,-1):
-		print 'i',i
-		let = word[i+1]
-		print 'let',let
-		output.pop()
-		print 'output', output
-		if len(avali[i]) != 1:
-			print 'avali',avali[i]
-			avali[i].remove(let)
-			print 'avali removed',avali[i]
-			output.append(avali[i][0])
-			print 'output1',output
-			s[i+1] = edging[i][str(avali[i][0])]
-			print 's',s
-			nk = minString(i+1)
-			output.extend(nk)
-			print 'outputfinal',output
-			return output
+def repeat(auto,graph,reverse,node,start,cpos,mode):
+	listedges = auto.transition[node]
+	ext = ['+','-']
+	for edge in listedges:
+		if mode == 1:
+			if int(edge[0]) == int(auto.end):
+				chkexist(graph,cpos,node)
+				chkexist(reverse,cpos+1,edge[0])
+				add(graph,cpos,start,edge[0])
+				#graph[cpos][start].append(edge[0])
+				reverse[cpos+1][edge[0]].append(start)	
+			elif (edge[1][-1] in ext) or (edge[1] == '[epsi]'):
+				repeat(auto,graph,reverse,edge[0],start,cpos,mode)
+			'''
+			if edge[1][-1] == '+':
+				print 'find sym0'
+				repeat(auto,graph,reverse,edge[0],start,cpos,mode)
+			elif (edge[1][-1] == '-') or (edge[1] == '[epsi]'):
+				if edge[0] == auto.end:
+					chkexist(graph,cpos,node)
+					chkexist(reverse,cpos+1,edge[0])
+					graph[cpos][start].append(edge[0])
+					reverse[cpos+1][edge[0]].append(start)	
+					print 'find sym1'
+				else:
+					repeat(auto,graph,reverse,edge[0],start,cpos,mode)
+			'''
 		else:
-			s[i+1] = set([])
-			avali[i] = []
-			edging[i]
-			print 's',s
-			print 'avali[i]',avali
+			if (edge[1][-1] in ext) or (edge[1] == '[epsi]'):
+				chkexist(graph,cpos,node)
+				chkexist(reverse,cpos+1,edge[0])
+				add(graph,cpos,start,edge[0])
+				#graph[cpos][start].append(edge[0])
+				reverse[cpos+1][edge[0]].append(start)
+				repeat(auto,graph,reverse,edge[0],start,cpos,mode)
 
-	return output
-listofout = []
-while k != []:
-	print 'k',k
-	listofout.append(str(k))
-	k = nextString(k)
-print '\n results'
-for i in range(len(listofout)):
-	print listofout[i]
+
+def findletter(auto,graph,reverse,inputletter,cpos,mode):
+	find = 0
+	if cpos == 0:
+		listnodes = auto.states
+	else:
+		listnodes = reverse[cpos].keys()
+
+	for node in listnodes:
+		print 'node', node
+		listedges = auto.transition[node]
+		print 'listedges',listedges
+		for edge in listedges:
+			print 'edge',edge
+			if edge[1] == inputletter[cpos]:
+				print 'edge = letter'
+				chkexist(graph,cpos,node)
+				chkexist(reverse,cpos+1,edge[0])
+				if mode == 1:
+					print 'mode 1'
+					if int(edge[0]) == int(auto.end):
+						#graph[cpos][node].append(edge[0])
+						add(graph,cpos,start,edge[0])
+						reverse[cpos+1][edge[0]].append(node)
+					else:
+						repeat(auto,graph,reverse,node,node,cpos,mode)
+					find = 1
+				else:
+					print 'mode 0'
+					#graph[cpos][node].append(edge[0])
+					add(graph,cpos,node,edge[0])
+					print 'graph, pos',cpos,'node',node,'edge',edge[0]
+					reverse[cpos+1][edge[0]].append(node)
+					repeat(auto,graph,reverse,node,node,cpos,mode)
+					find = 1
+		print 'find',find
+		if find == 0 and cpos != 0:
+			print 'find == 0'
+			links = reverse[cpos][node]
+			print 'links',links
+			for link in links:
+				graph[cpos-1][link].remove(node)
+			print 'pos',cpos-1, 'graph',graph[cpos-1]
+			#del reverse[cpos][node]
+			find = 0
+
+
+for i in range(len(inputstr)):
+	print 'i',i
+	if i == len(inputstr)-1:
+		findletter(autom,graphing,regraph,inputstr,i,1)
+	else:
+		findletter(autom,graphing,regraph,inputstr,i,0)
+
+
+print graphing
+print regraph
+print len(inputstr)
+
+def reverse(graph,rgraph,inputstr):
+	last = len(inputstr)
+	inital = rgraph[last][last-1]
+
+
+
+'''	
+for i in range(len(inputstr)):
+	reach(autom,graphing,i,0,len(inputstr),0,0,savedata)
+	print 'savedata',savedata
+	print 'graphing', graphing
+states = set([])
+sta = []
+print graphing
+for key, liste in graphing[0].iteritems():
+	states = states | set(liste)
+print 'states-1',states
+graphing[-1][0] = []
+for state in states:
+	graphing[-1][0].append(state)
+print 'graphing',graphing
+
+agraph = sc2.automata(0,0,0)
+
+agraph.reset()
+
+agraph.start = 'q0'
+agraph.end = (len(inputstr),'q'+str(autom.end))
+agraph.states = agraph.states | {agraph.start} | {agraph.end}
+for i in range(-1,len(inputstr)):
+	if i == -1:
+		temp = graphing[-1][0]
+		agraph.transition['q0'] = []
+		for node in temp:
+			endnode = (0,'q'+str(node))
+			value = varstates[node]
+			tup = (str(endnode),str(value))
+			agraph.transition['q0'].append(tup)
+			agraph.states = agraph.states | {str(endnode)}
+	else:
+		temp = graphing[i]
+		for node, edges in temp.iteritems():
+			startn = (i,'q'+str(node))
+			if not agraph.transition.has_key(str(startn)):
+				agraph.transition[str(startn)] = []
+			for dest in edges:
+				endnode = (i+1,'q'+str(dest))
+				value = varstates[dest]
+				tup = (str(endnode),str(value))
+				agraph.transition[str(startn)].append(tup)
+				agraph.states = agraph.states | {str(endnode)}
+
+printgraph(agraph,2)
+'''

@@ -2,7 +2,7 @@ import threading, time, random, traceback, uuid, json, Queue, sys, copy
 
 def readauto():
     #filename = raw_input('Please enter a file name: ')
-    fname = 'test'+'.txt'
+    fname = 'testing2'+'.txt'
     f = open(fname, 'r')
     data = []
     for line in f:
