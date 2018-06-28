@@ -61,6 +61,7 @@ class automata():
 		#self.printauto()
 
 	def union(self,auto1):
+		'''
 		self.renumber(1)
 		self.start = 0
 		auto1.renumber(self.end+1)
@@ -69,18 +70,26 @@ class automata():
 		self.addedge(auto1.end,lastnode,'[epsi]')
 		self.addedge(0,1,'[epsi]')
 		self.addedge(0,auto1.start,'[epsi]')
-		self.states = self.states | auto1.states
+		'''
+		auto1.renumber(self.end)
 		self.varstates = self.varstates | auto1.varstates
 		for key, item in auto1.transition.iteritems():
 			if not self.transition.has_key(key):
 				self.transition[key] = []
-			self.transition[key].extend(item)
+			if key == auto1.start:
+				self.transition[self.start].extend(item)
+			else:
+				self.transition[key].extend(item)
 		
+		lastnode = auto1.end+1
+		self.addedge(self.end,lastnode,'[epsi]')
+		self.addedge(auto1.end,lastnode,'[epsi]')
+		self.states = self.states | auto1.states
 		#self.printauto()
 
 	def concat(self,auto1):
 		#or
-		self.addedge(self.end,self.end+1,'[epsi]')
+		#self.addedge(self.end,self.end+1,'[epsi]')
 		auto1.renumber(self.end)
 		self.states = self.states | auto1.states
 		self.varstates = self.varstates | auto1.varstates
@@ -188,8 +197,8 @@ def main():
 	# Parsing
 	#different alg relation next to each other i.e a*|b require brackets (a*)|b
 	parser = ParserPython(formula, debug=True) #, reduce_tree = True)
-	input_regex = "(a*) & [x: (a|b) ] & c"
-	input_regex = raw_input('Enter regex formula: ')
+	input_regex = "(a*) & [x: (a*) ] & (a*)"
+	#input_regex = raw_input('Enter regex formula: ')
 	parse_tree = parser.parse(input_regex)
 	result = visit_parse_tree(parse_tree, formVisitor(debug=True))
 

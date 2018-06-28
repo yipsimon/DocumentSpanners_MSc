@@ -232,47 +232,63 @@ node = set([])
 for i in range(len(inputstr)):
 	find = 0
 	if i == 0:
-		for key, edges in autom.transition.iteritems():
+		for key in autom.states:
+			edges = autom.transition[key]
 			print 'key',key
 			print 'edges',edges
 			for edge in edges:
 				print 'edge',edge
-				if edge[1] == inputstr[i]:
+				if edge[1] == '[epsi]':
+					print 'true2'
+					listedges = autom.transition[edge[0]]
+					for edg in listedges:
+						if edg[1] == inputstr[i]:
+							chkexist(regraph,i+1,edg[0])
+							regraph[i+1][edg[0]].add(key)
+							find = 1
+				elif edge[1] == inputstr[i]:
 					print 'true'
 					chkexist(regraph,i+1,edge[0])
 					regraph[i+1][edge[0]].add(key)
-					node.add(edge[0])
 					find = 1
+
+		if find == 1:
+			for key in regraph[i+1].keys():
+				val = regraph[i+1][key]
+				for item in val:
+					repeat(autom,regraph,i,item,key)
 			
-			if find == 1:
-				for edge in edges:
-					if (edge[1][-1] in ext) or (edge[1] == '[epsi]'):
-						#print 'extra'
-						repeat(autom,regraph,i,key,key)
-			print 'regraph',regraph
-			
+		print 'regraph',regraph
+	
 	else:
-		#print 'node',node
-		temp = set([])
-		for key in node:
+		for key in regraph[i].keys():
 			print 'key',key
 			edges = autom.transition[key]
 			print 'edges',edges
 			for edge in edges:
 				print 'edge',edge
-				if edge[1] == inputstr[i] or edge[1] == '[epsi]':
+				if edge[1] == '[epsi]':
+					print 'true2'
+					listedges = autom.transition[edge[0]]
+					for edg in listedges:
+						if edg[1] == inputstr[i]:
+							chkexist(regraph,i+1,edg[0])
+							regraph[i+1][edg[0]].add(key)
+							find = 1
+
+				elif edge[1] == inputstr[i]:
 					print 'true'
 					chkexist(regraph,i+1,edge[0])
 					regraph[i+1][edge[0]].add(key)
-					temp.add(edge[0])
 					find = 1
-			
-			if find == 1:
-				for edge in edges:
-					if (edge[1][-1] in ext) or (edge[1] == '[epsi]'):
-						print 'extra'
-						repeat(autom,regraph,i,key,key)
-		node = temp
+		
+		if find == 1:
+			for key in regraph[i+1].keys():
+				val = regraph[i+1][key]
+				for item in val:
+					repeat(autom,regraph,i,item,key)
+
+		print 'regraph',regraph
 
 
 print 'regraph',regraph
@@ -329,14 +345,14 @@ autograph.reset()
 autograph.start = 'q0'
 autograph.end = str(enode)
 autograph.transition = finalgraph
-printgraph(autograph,1)
+#printgraph(autograph,1)
 
 
 s = {}
 avali = {}
 edging = {}
 
-for i in range(-1,3):
+for i in range(-1,len(inputstr)):
 	s[i] = set([])
 	edging[i] = {}
 	avali[i] = []
@@ -352,15 +368,20 @@ def minString(num):
 	letter = []
 	last = []
 	leng = len(varstates[0])
-	for i in range(num,2):
+	for i in range(num,len(inputstr)-1):
+		print 'i',i
+		print 's[i]',s[i]
 		for item1 in s[i]:
-			for item in graphing[i][int(item1)]:
-				temp = varstates[int(item)]
-				if not temp in avali[i]:
-					avali[i].append(temp)
-				haskey(tempedge,str(temp))
-				tempedge[str(temp)].add(item)
-				edging[i] = tempedge
+			print 'item1',item1
+			print 'graphing[i]',graphing[i]
+			if graphing[i].has_key(int(item1)):
+				for item in graphing[i][int(item1)]:
+					temp = varstates[int(item)]
+					if not temp in avali[i]:
+						avali[i].append(temp)
+					haskey(tempedge,str(temp))
+					tempedge[str(temp)].add(item)
+					edging[i] = tempedge
 
 		for j in range(leng-1,0,-1):
 			avali[i].sort(key=lambda tup: tup[j])
@@ -388,7 +409,7 @@ def nextString(word):
 	print 'start nextString'
 	output = word
 	output.pop()
-	for i in range(1,-2,-1):
+	for i in range(len(inputstr)-2,-2,-1):
 		print 'i',i
 		let = word[i+1]
 		print 'let',let
