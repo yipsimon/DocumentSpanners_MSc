@@ -31,6 +31,12 @@ class automata():
 		self.states = set([])
 		self.transition = {}
 
+	def tostr(self):
+		temp = {}
+		for key, item in self.transition.iteritems():
+			temp[str(key)] = item
+		self.transition = temp
+		
 	def renumber(self,num):
 		self.start += num
 		self.end += num
