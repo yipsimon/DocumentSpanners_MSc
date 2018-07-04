@@ -52,7 +52,7 @@ class automata():
 		self.states = temp
 		self.lastnum = num1
 		temp = {}
-		for key, item in self.transition.tems():
+		for key, item in self.transition.items():
 			temp[int(key)+num] = []
 			for tup in item:
 				ntup = (tup[0]+num,tup[1])
