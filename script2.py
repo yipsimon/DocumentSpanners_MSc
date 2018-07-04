@@ -28,13 +28,18 @@ class automata():
 	def reset(self):
 		self.start = 0
 		self.end = 0
+		self.varstates = set([])
 		self.states = set([])
 		self.transition = {}
 
 	def tostr(self):
 		temp = {}
-		for key, item in self.transition.iteritems():
-			temp[str(key)] = item
+		for key, items in self.transition.iteritems():
+			temp[str(key)] = []
+			for item in items:
+				nitem = (str(item[0]),str(item[1]))
+				temp[str(key)].append(nitem)
+
 		self.transition = temp
 		
 	def renumber(self,num):
@@ -109,18 +114,18 @@ class automata():
 
 	def plus(self):
 		self.addedge(self.end,0,'[epsi]')
-		self.renumber(1)
+		#self.renumber(1)
 		self.start = 0
-		self.addedge(0,1,'[epsi]')
+		#self.addedge(0,1,'[epsi]')
 		self.addedge(self.end,self.end+1,'[epsi]')
-		self.addedge(0,self.end,'[epsi]')
+		#self.addedge(0,self.end,'[epsi]')
 		#self.printauto()
 
 	def star(self):
 		self.addedge(self.end,0,'[epsi]')
-		self.renumber(1)
+		#self.renumber(1)
 		self.start = 0
-		self.addedge(0,1,'[epsi]')
+		#self.addedge(0,1,'[epsi]')
 		self.addedge(self.end,self.end+1,'[epsi]')
 		self.addedge(0,self.end,'[epsi]')
 		#self.printauto()		
@@ -202,13 +207,14 @@ class formVisitor(PTNodeVisitor):
 def main():
 	# Parsing
 	#different alg relation next to each other i.e a*|b require brackets (a*)|b
-	parser = ParserPython(formula, debug=True) #, reduce_tree = True)
-	input_regex = "(a*) & [x: (a*) ] & (a*)"
-	#input_regex = raw_input('Enter regex formula: ')
+	parser = ParserPython(formula) #, reduce_tree = True)
+	#input_regex = " (a*) & [x:(b&[y:c])]"
+	input_regex = raw_input('Enter regex formula: ')
 	parse_tree = parser.parse(input_regex)
-	result = visit_parse_tree(parse_tree, formVisitor(debug=True))
+	result = visit_parse_tree(parse_tree, formVisitor())
 
-	result.printauto()
+	#result.printauto()
+	result.tostr()
 	return result
 	#print("{} = {}".format(input_regex, result))
 
