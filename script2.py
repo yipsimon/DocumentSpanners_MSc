@@ -34,7 +34,7 @@ class automata():
 
 	def tostr(self):
 		temp = {}
-		for key, items in self.transition.iteritems():
+		for key, items in self.transition.items():
 			temp[str(key)] = []
 			for item in items:
 				nitem = (str(item[0]),str(item[1]))
@@ -52,7 +52,7 @@ class automata():
 		self.states = temp
 		self.lastnum = num1
 		temp = {}
-		for key, item in self.transition.iteritems():
+		for key, item in self.transition.tems():
 			temp[int(key)+num] = []
 			for tup in item:
 				ntup = (tup[0]+num,tup[1])
@@ -65,7 +65,7 @@ class automata():
 			self.end = dest
 			self.transition[dest] = []
 		self.states = self.states | {start,dest}
-		if not self.transition.has_key(start):
+		if not start in self.transition:
 			self.transition[start] = []
 		self.transition[start].append(tup)
 		#print('ADDEDGE',start,dest,value)
@@ -84,8 +84,8 @@ class automata():
 		'''
 		auto1.renumber(self.end)
 		self.varstates = self.varstates | auto1.varstates
-		for key, item in auto1.transition.iteritems():
-			if not self.transition.has_key(key):
+		for key, item in auto1.transition.iter():
+			if not key in self.transition:
 				self.transition[key] = []
 			if key == auto1.start:
 				self.transition[self.start].extend(item)
@@ -104,8 +104,8 @@ class automata():
 		auto1.renumber(self.end)
 		self.states = self.states | auto1.states
 		self.varstates = self.varstates | auto1.varstates
-		for key, item in auto1.transition.iteritems():
-			if not self.transition.has_key(key):
+		for key, item in auto1.transition.items():
+			if not key in self.transition:
 				self.transition[key] = []
 			self.transition[key].extend(item)
 		self.end = auto1.end
@@ -209,7 +209,7 @@ def main():
 	#different alg relation next to each other i.e a*|b require brackets (a*)|b
 	parser = ParserPython(formula) #, reduce_tree = True)
 	#input_regex = " (a*) & [x:(b&[y:c])]"
-	input_regex = raw_input('Enter regex formula: ')
+	input_regex = input('Enter regex formula: ')
 	parse_tree = parser.parse(input_regex)
 	result = visit_parse_tree(parse_tree, formVisitor())
 
