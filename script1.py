@@ -36,7 +36,7 @@ def printgraph(auto,mode):
 	add_nodes(g, [str(auto.end)])
 	g.attr('node', shape='circle')
 	edges = []
-	for key, item in auto.transition.iteritems():
+	for key, item in auto.transition.items():
 		for line in item:
 			if line[1] == '[epsi]':
 				value = '&epsilon;'
@@ -46,7 +46,7 @@ def printgraph(auto,mode):
 			edges.append(tup)
 	
 	add_edges(g, edges)
-	#print g
+	print (g)
 	g.format = 'pdf'
 	g.view()
 
@@ -71,9 +71,9 @@ def readauto():
     		auto.states = auto.states | {int(item[0]),int(item[1])}
     		if str(item[2][-1]) == '+':
     			auto.varstates.add(str(item[2][0]))
-    		if item[0] == 0:
+    		if int(item[0]) == 0:
     			auto.start = item[0]
-    		if item[1] > auto.end:
+    		if int(item[1]) > int(auto.end):
     			auto.end = item[1]
     f.close()
     auto.tostr()
@@ -277,7 +277,7 @@ def gengraphs(autom,inputstr):
 						find = 1
 			
 			if find == 1:
-				for key in regraph[i+1].keys():
+				for key in list(regraph[i+1]):
 					val = regraph[i+1][key]
 					for item in val:
 						repeat(autom,regraph,i,item,key)
@@ -317,7 +317,7 @@ def gengraphs(autom,inputstr):
 
 
 def ghaskey(graph,node):
-	if not node in graph.has_key:
+	if not node in graph:
 		graph[node] = []
 
 def final(autom,graphing,varstates,num):
@@ -486,7 +486,7 @@ else:
 
 if int(x) <= 2:
 	inputprint = input('Print Graph: yes=0, no=any \n')
-	if not inputprint:
+	if int(inputprint) == 0:
 		printgraph(autom,1)
 	
 	inputstr = input('Enter your string: ')
@@ -661,7 +661,7 @@ elif int(x) > 2 and int(x) <= 4:
 
 	elif int(x) == 4:
 		inputprint = input('Print Graph: yes=0, no=any \n')
-		if not inputprint:
+		if int(inputprint) == 0:
 			printgraph(autom,1)
 	
 		inputstr = input('Enter your string: ')
@@ -704,7 +704,7 @@ elif int(x) == 5:
 	autom = sc2.main()
 	print ('automaton',autom.printauto())
 	inputprint = input('Print Graph: yes=0, no=any \n')
-	if not inputprint:
+	if int(inputprint) == 0:
 		printgraph(autom,1)
 	
 	inputstr = input('Enter your string: ')
@@ -720,7 +720,13 @@ elif int(x) == 5:
 	print ('varstates',autom.varstates)
 	time.sleep(1)
 
-	num1 = input('choose position, -1 = all\n')
+	num1 = input('choose var operation: , all == -1 \n')
+	temp4 = list(autom.varstates)
+	for i in range(len(temp4)):
+		if str(num1) == str(temp4[i]):
+			num1 = i
+			break
+
 	outputing(graph, varstates, inputstr, autom, num1)
 
 elif int(x) == 6:
