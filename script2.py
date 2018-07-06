@@ -21,14 +21,14 @@ class automata():
 	def __init__(self,startnode,endnode,value):
 		self.start = startnode
 		self.end = endnode
-		self.varstates = set([])
+		self.varstates = []
 		self.states = set([startnode,endnode])
 		self.transition = {startnode: [(endnode,value)], endnode: []}
 
 	def reset(self):
 		self.start = 0
 		self.end = 0
-		self.varstates = set([])
+		self.varstates = []
 		self.states = set([])
 		self.transition = {}
 
@@ -83,8 +83,10 @@ class automata():
 		self.addedge(0,auto1.start,'[epsi]')
 		'''
 		auto1.renumber(self.end)
-		self.varstates = self.varstates | auto1.varstates
-		for key, item in auto1.transition.iter():
+		for item in auto1.varstates:
+			if item not in self.varstates:
+				self.varstates.append(item)
+		for key, item in auto1.transition.items():
 			if not key in self.transition:
 				self.transition[key] = []
 			if key == auto1.start:
@@ -103,7 +105,10 @@ class automata():
 		#self.addedge(self.end,self.end+1,'[epsi]')
 		auto1.renumber(self.end)
 		self.states = self.states | auto1.states
-		self.varstates = self.varstates | auto1.varstates
+		for item in auto1.varstates:
+			if item not in self.varstates:
+				self.varstates.append(item)
+
 		for key, item in auto1.transition.items():
 			if not key in self.transition:
 				self.transition[key] = []
@@ -133,7 +138,7 @@ class automata():
 	def varconfig(self,alpha):
 		self.renumber(1)
 		self.start = 0
-		self.varstates.add(str(alpha))
+		self.varstates.append(str(alpha))
 		self.addedge(0,1,str(alpha)+'+')
 		self.addedge(self.end,self.end+1,str(alpha)+'-')
 

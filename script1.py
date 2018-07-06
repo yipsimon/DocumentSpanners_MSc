@@ -46,7 +46,7 @@ def printgraph(auto,mode):
 			edges.append(tup)
 	
 	add_edges(g, edges)
-	print (g)
+	#print (g)
 	g.format = 'pdf'
 	g.view()
 
@@ -70,7 +70,8 @@ def readauto():
     		auto.transition[int(item[0])].append(tup)
     		auto.states = auto.states | {int(item[0]),int(item[1])}
     		if str(item[2][-1]) == '+':
-    			auto.varstates.add(str(item[2][0]))
+    			if str(item[2][0]) not in auto.varstates:
+    				auto.varstates.append(str(item[2][0]))
     		if int(item[0]) == 0:
     			auto.start = item[0]
     		if int(item[1]) > int(auto.end):
@@ -84,9 +85,7 @@ def functionalitychk(auto, var):
 	openlist = {}
 	closelist = {}
 	varconfig = {}
-	temp = []
-	for config in auto.varstates:
-		temp.append(str(config))
+	temp = auto.varstates
 
 	for item in auto.states:
 		openlist[str(item)] = set([])
@@ -209,28 +208,37 @@ def chkexist(graph,pos,node):
 	if not node in graph[pos]:
 		graph[pos][node] = set([])
 
-def repeat(auto,graph,i,j,node):
-	listedges = auto.transition[node]
+def repeat(auto,graph,i,j,key,varstates):
+	listedges = auto.transition[key]
 	ext = ['+','-']
 	for edge in listedges:
+		print('edge',edge)
 		if (edge[1][-1] in ext) or (edge[1] == '[epsi]'):
+			#if (varstates[edge[0]] != varstates[str(j)]):
 			chkexist(graph,i+1,edge[0])
+			print('add',edge[0],j)
 			graph[i+1][edge[0]].add(j)
-			repeat(auto,graph,i,j,edge[0])
+			repeat(auto,graph,i,j,edge[0],varstates)
+			#if (varstates[edge[0]] == varstates[str(j)]):
+				#repeat(auto,graph,i,j,edge[0],varstates)
 
-def ifepsi(autom,inputstr,regraph,i,find,edge,key):
+def ifepsi(autom,inputstr,regraph,i,find,edge,key,varstates):
 	print ('true2')
 	listedges = autom.transition[edge[0]]
+	
 	for edg in listedges:
 		if edg[1] == inputstr[i]:
 			chkexist(regraph,i+1,edg[0])
 			regraph[i+1][edg[0]].add(key)
 			find = 1
+
 		elif edg[1] == '[epsi]':
-			ifepsi(autom,inputstr,regraph,i,find,edg,key)
+			if (varstates[edg[0]] == varstates[str(key)]):
+				ifepsi(autom,inputstr,regraph,i,find,edg,key,varstates)
 
+				
 
-def gengraphs(autom,inputstr):
+def gengraphs(autom,inputstr,varstates):
 
 	graphing = {}
 	regraph = {}
@@ -249,7 +257,7 @@ def gengraphs(autom,inputstr):
 		find = 0
 		if i == -1:
 			chkexist(regraph,i+1,str(autom.start))
-			regraph[i+1][str(autom.start)].add('0')
+			#regraph[i+1][str(autom.start)].add('0')
 			
 			todos = set([str(autom.start)])
 			while todos:
@@ -269,22 +277,24 @@ def gengraphs(autom,inputstr):
 				edges = autom.transition[key]
 				for edge in edges:
 					if edge[1] == '[epsi]':
-						ifepsi(autom,inputstr,regraph,i,find,edge,key)
+						if (varstates[edge[0]] == varstates[str(key)]):
+							ifepsi(autom,inputstr,regraph,i,find,edge,key,varstates)
+							print('find1',find)
+
 
 					elif edge[1] == inputstr[i]:
 						chkexist(regraph,i+1,edge[0])
 						regraph[i+1][edge[0]].add(key)
 						find = 1
-			
+
+			print('find2',find)
 			if find == 1:
-				for key in list(regraph[i+1]):
-					val = regraph[i+1][key]
-					for item in val:
-						repeat(autom,regraph,i,item,key)
+				for key in regraph[i].keys():
+					repeat(autom,regraph,i,key,key,varstates)
 
 	print ('regraph',regraph)
-
 	print (str(autom.end))
+
 	states = regraph[len(inputstr)][str(autom.end)]
 	for item in states:
 		chkexist(graphing,len(inputstr)-1,str(item))
@@ -320,7 +330,7 @@ def ghaskey(graph,node):
 	if not node in graph:
 		graph[node] = []
 
-def final(autom,graphing,varstates,num):
+def final(end,graphing,varstates,num):
 	finalgraph = {}
 	for key, item in graphing.items():
 		for key2, item2 in item.items():
@@ -335,7 +345,7 @@ def final(autom,graphing,varstates,num):
 				finalgraph[node1].append([node2,value])
 
 	print (finalgraph)
-	enode = "('"+str(len(inputstr))+"', '"+str(autom.end)+"')"
+	enode = "('"+str(len(inputstr))+"', '"+str(end)+"')"
 	autograph = sc2.automata(0,0,0)
 	autograph.reset()
 	autograph.start = 'q0'
@@ -349,12 +359,12 @@ def haskey(graph,node):
 	if not node in graph:
 		graph[node] = set([])
 
-def minString(num,s,avali,edging,graphing,varstates,inputstr,auto,num2):
+def minString(num,s,avali,edging,graphing,varstates,inputstr,start,num2):
 	tempedge = {}
 	letter = []
 	last = []
 	if num2 == -1:
-		leng = len(varstates[str(auto.start)])
+		leng = len(varstates[str(start)])
 	else:
 		leng = 1
 	for i in range(num,len(inputstr)-1):
@@ -395,7 +405,7 @@ def minString(num,s,avali,edging,graphing,varstates,inputstr,auto,num2):
 	letter.append(temp2)
 	return letter
 
-def nextString(word,s,avali,edging,graphing,varstates,inputstr,auto,num2):
+def nextString(word,s,avali,edging,graphing,varstates,inputstr,start,num2):
 	print ('start nextString')
 	output = word
 	output.pop()
@@ -414,7 +424,7 @@ def nextString(word,s,avali,edging,graphing,varstates,inputstr,auto,num2):
 			print ('output1',output)
 			s[i+1] = edging[i][str(avali[i][0])]
 			print ('s',s)
-			nk = minString(i+1,s,avali,edging,graphing,varstates,inputstr,auto,num2)
+			nk = minString(i+1,s,avali,edging,graphing,varstates,inputstr,start,num2)
 			output.extend(nk)
 			print ('outputfinal',output)
 			return output
@@ -428,7 +438,7 @@ def nextString(word,s,avali,edging,graphing,varstates,inputstr,auto,num2):
 	return output
 
 
-def outputing(graphing, varstate, inputstr, auto, num2):
+def outputing(graphing, varstates, inputstr, start, num2):
 	s = {}
 	avali = {}
 	edging = {}
@@ -439,7 +449,7 @@ def outputing(graphing, varstate, inputstr, auto, num2):
 		avali[i] = []
 
 	s[-1].add(0)
-	k = minString(-1,s,avali,edging,graphing,varstates,inputstr,auto,num2)
+	k = minString(-1,s,avali,edging,graphing,varstates,inputstr,start,num2)
 	print (k)
 	print ('edging',edging)
 
@@ -447,7 +457,7 @@ def outputing(graphing, varstate, inputstr, auto, num2):
 	while k != []:
 		print ('k',k)
 		listofout.append(str(k))
-		k = nextString(k,s,avali,edging,graphing,varstates,inputstr,auto,num2)
+		k = nextString(k,s,avali,edging,graphing,varstates,inputstr,start,num2)
 	print ('\n results')
 	for i in range(len(listofout)):
 		print (listofout[i])
@@ -495,11 +505,11 @@ if int(x) <= 2:
 
 	print ('varstates',varstates)
 
-	graph = gengraphs(autom,inputstr)
+	graph = gengraphs(autom,inputstr,varstates)
 
-	finalauto = final(autom,graph,varstates,2)
+	finalauto = final(autom.end,graph,varstates,2)
 
-	outputing(graph, varstates, inputstr, autom, -1)
+	outputing(graph, varstates, inputstr, autom.start, -1)
 
 elif int(x) > 2 and int(x) <= 4:
 	autom1 = sc2.automata(0,0,0)
@@ -507,30 +517,232 @@ elif int(x) > 2 and int(x) <= 4:
 	autom1.reset()
 	autom2.reset()
 	autom1.states = autom1.states | {'0','1','2'}
-	autom2.states = autom2.states | {'0','1','2','3'}
-	autom1.varstates = autom1.varstates | {'x'}
-	autom2.varstates = autom2.varstates | {'x'}
+	autom2.states = autom2.states | {'0','1','2'}
+	autom1.varstates = ['x']
+	autom2.varstates = ['y']
 	autom1.transition['0'] = [('0','a'),('1','x+')]
 	autom1.transition['1'] = [('1','a'),('2','x-')]
 	autom1.transition['2'] = [('2','a')]
-	autom2.transition['0'] = [('0','a'),('1','a')]
-	autom2.transition['1'] = [('1','a'),('2','x+')]
-	autom2.transition['2'] = [('2','a'),('3','x-')]
-	autom2.transition['3'] = [('3','a')]
+	autom2.transition['0'] = [('0','a'),('1','y+')]
+	autom2.transition['1'] = [('1','a'),('2','y-')]
+	autom2.transition['2'] = [('2','a')]
 	autom1.start = 0
 	autom1.end = 2
 	autom2.start = 0
-	autom2.end = 3
+	autom2.end = 2
+	
 	#ext = ['+','-']
 	if int(x) == 3:
+		varstates1 = functionalitychk(autom1,'-1')
+		varstates2 = functionalitychk(autom2,'-1')
 		auto = sc2.automata(0,0,0)
 		auto.reset()
-		stup = (0,0)
+		stup = (autom1.start,autom2.start)
 		auto.start = str(stup)
 		stup = (autom1.end,autom2.end)
 		auto.end = str(stup)
-		auto.varstates = autom1.varstates | autom2.varstates
+		auto.varstates = []
+		auto.varstates.extend(autom1.varstates)
+		for item in autom2.varstates:
+			if item not in auto.varstates:
+				auto.varstates.append(item)
 		inittup = (0,0)
+		
+		print('auto.varstates',auto.varstates)
+		todo1 = set([(int(0),int(0))])
+		seen1 = set([])
+		done = set([])
+		varstates = {}
+		ext = ['+','-']
+
+		while todo1:
+			print ('todo',todo1)
+			start = todo1.pop()
+			edges1 = autom1.transition[str(start[0])]
+			edges2 = autom2.transition[str(start[1])]
+			tempdest = []
+			for edge in edges2:
+				dest = (int(start[0]),int(edge[0]))
+				fail = 0
+				print('dest',dest)
+				print('tempdest',tempdest)
+				print('var',varstates)
+				if dest in tempdest:
+					fail = 2
+				else:
+					tempdest.append(dest)
+				
+
+				if not seen1 & {dest}:
+					seen1.add(dest)
+					getvar1 = varstates1[str(dest[0])]
+					getvar2 = varstates2[str(dest[1])]
+					print('getvar1',getvar1)
+					print('getvar2',getvar2)
+					order1 = list(autom1.varstates)
+					order2 = list(autom2.varstates)
+					print('order1',order1)
+					print('order2',order2)
+					varstates[str(dest)] = []
+					for state in auto.varstates:
+						find = 0					
+						print('state',state)
+						for i in range(len(order1)):
+							print('i',i)
+							print('order1[i]',order1[i])
+							print('getvar1[i]',getvar1[i])
+							if str(state) == str(order1[i]):
+								print('same order1[i]')
+								for j in range(len(order2)):
+									print('j',j)
+									print('order2[j]',order2[j])
+									print('getvar2[j]',getvar2[j])
+									if str(state) == str(order2[j]):
+										print('same order2[j]')
+										find = 1
+										if getvar1[i] != getvar2[j]:
+											fail = 1
+										else:
+											varstates[str(dest)].append(getvar1[j])
+											print('varstates[str(dest)]',varstates[str(dest)])
+
+
+									elif find == 1 or fail == 1:
+										break
+									elif j == len(order2)-1 and find == 0:
+										varstates[str(dest)].append(getvar1[i])
+										find = 1
+										print('varstates[str(dest)]',varstates[str(dest)])
+										
+							elif find == 1 or fail == 1:
+								break
+
+							elif i == len(order1)-1 and find == 0:
+								for k in range(len(order2)):
+									print('k',k)
+									print('order2[k]',order2[k])
+									print('getvar2[k]',getvar2[k])
+									if str(state) == str(order2[k]):
+										varstates[str(dest)].append(getvar2[k])
+										print('varstates[str(dest)]',varstates[str(dest)])
+										find = 1
+										break
+				if fail == 0:
+					
+					if edge[1][-1] in ext:
+						temptup = (str(dest),'[epsi]')
+					else:
+						temptup = (str(dest),edge[1])
+					
+					if not str(start) in auto.transition:
+						auto.transition[str(start)] = []
+						#auto.transition[str(start)] = []
+
+					auto.transition[str(start)].append(temptup)
+					if str(start) != str(dest) and (not done&{dest}):
+						todo1.add(dest)
+
+				elif fail == 1:
+					del varstates[str(dest)]
+
+			for edge in edges1:
+				dest = (int(edge[0]),int(start[1]))
+				fail = 0
+				print('dest',dest)
+				print('tempdest',tempdest)
+				print('var',varstates)
+				if dest in tempdest:
+					fail = 2
+				else:
+					tempdest.append(dest)
+
+				if not seen1 & {dest}:
+					seen1.add(dest)
+					getvar1 = varstates1[str(dest[0])]
+					getvar2 = varstates2[str(dest[1])]
+					print('getvar1',getvar1)
+					print('getvar2',getvar2)
+					order1 = autom1.varstates
+					order2 = autom2.varstates
+					print('order1',order1)
+					print('order2',order2)
+					varstates[str(dest)] = []
+					for state in auto.varstates:
+						find = 0					
+						print('state',state)
+						for i in range(len(order1)):
+							print('i',i)
+							print('order1[i]',order1[i])
+							print('getvar1[i]',getvar1[i])
+							if str(state) == str(order1[i]):
+								print('same order1[i]')
+								for j in range(len(order2)):
+									print('j',j)
+									print('order2[j]',order2[j])
+									print('getvar2[j]',getvar2[j])
+									if str(state) == str(order2[j]):
+										print('same order2[j]')
+										find = 1
+										if getvar1[i] != getvar2[j]:
+											fail = 1
+										else:
+											varstates[str(dest)].append(getvar1[j])
+											print('varstates[str(dest)]',varstates[str(dest)])
+
+
+									elif find == 1 or fail == 1:
+										break
+									elif j == len(order2)-1 and find == 0:
+										varstates[str(dest)].append(getvar1[i])
+										find = 1
+										print('varstates[str(dest)]',varstates[str(dest)])
+										
+
+
+							elif find == 1 or fail == 1:
+								break
+
+							elif i == len(order1)-1 and find == 0:
+								for k in range(len(order2)):
+									print('k',k)
+									print('order2[k]',order2[k])
+									print('getvar2[k]',getvar2[k])
+									if str(state) == str(order2[k]):
+										varstates[str(dest)].append(getvar2[k])
+										print('varstates[str(dest)]',varstates[str(dest)])
+										find = 1
+										break
+				if fail == 0:
+					
+					if edge[1][-1] in ext:
+						temptup = (str(dest),'[epsi]')
+					else:
+						temptup = (str(dest),edge[1])
+					
+					if not str(start) in auto.transition:
+						auto.transition[str(start)] = []
+						#auto.transition[str(start)] = []
+
+					auto.transition[str(start)].append(temptup)
+					if start != dest and (not done&{dest}):
+						todo1.add(dest)
+
+				elif fail == 1:
+					del varstates[str(dest)]
+
+			done.add(start)
+
+
+
+		auto.printauto()
+		printgraph(auto,1)
+
+
+
+
+				
+
+		'''
 		nextnode = set([inittup])
 		seened = set([inittup])
 		while nextnode:
@@ -581,7 +793,7 @@ elif int(x) > 2 and int(x) <= 4:
 			print ('nextnode',nextnode)
 			print ('auto.transition',auto.transition)
 
-
+		'''
 
 
 
@@ -646,18 +858,20 @@ elif int(x) > 2 and int(x) <= 4:
 		'''
 		auto.printauto()
 		printgraph(auto,1)
+		print(auto.transition)
 
 		inputstr = input('Enter your string: ')
 
-		varstates = functionalitychk(auto,'-1')
-
+	
 		print ('varstates',varstates)
 
-		graph = gengraphs(auto,inputstr)
+		graph = gengraphs(auto,inputstr,varstates)
+		print(graph)
+		#time.sleep(5)
 
-		finalauto = final(auto,graph,varstates,2)
+		finalauto = final(auto.end,graph,varstates,2)
 
-		outputing(graph, varstates, inputstr, auto, -1)
+		outputing(graph, varstates, inputstr, auto.start, -1)
 
 	elif int(x) == 4:
 		inputprint = input('Print Graph: yes=0, no=any \n')
@@ -672,11 +886,135 @@ elif int(x) > 2 and int(x) <= 4:
 		print ('varstates1',varstates1)
 		print ('varstates2',varstates2)
 
-		graph1 = gengraphs(autom1,inputstr)
-		graph2 = gengraphs(autom2,inputstr)
+		graph1 = gengraphs(autom1,inputstr,varstates1)
+		graph2 = gengraphs(autom2,inputstr,varstates2)
 
-		finalauto1 = final(autom1,graph1,varstates1,3)
-		finalauto2 = final(autom2,graph2,varstates2,4)
+		#finalauto1 = final(autom1.end,graph1,varstates1,3)
+		#finalauto2 = final(autom2.end,graph2,varstates2,4)
+
+		print('g1',graph1)
+		print('g2',graph2)
+		disjoint = 1
+		pos = []
+		pos.extend(autom1.varstates)
+		for v in autom2.varstates:
+			if v in autom1.varstates:
+				disjoint = 0
+			else:
+				pos.append(v)
+		start = (autom1.start,autom2.start)
+		end = (autom1.end,autom2.end)
+		nvarstates = {}
+		posstate = {}
+		for state in pos:
+			for i in range(len(autom1.varstates)):
+				if state == autom1.varstates[i]:
+					pos1 = i
+				elif i == len(autom1.varstates)-1:
+					pos1 = -1
+			for j in range(len(autom2.varstates)):
+				if state == autom2.varstates[j]:
+					pos2 = j
+				elif j == len(autom2.varstates)-1:
+					pos2 = -1 
+			posstate[state] = (pos1,pos2)
+
+
+		cgraph = {}
+		doing = {(0,0)}
+		for i in range(-1,len(inputstr)):
+			cgraph[i] = {}
+			print('doing',doing)
+			temp = set([])
+			while doing:
+				get = doing.pop()
+				if i == -1:
+					cgraph[i]['0'] = set([])
+					toadd = cgraph[i]['0']
+				else:
+					cgraph[i][str(get)] = set([])
+					toadd = cgraph[i][str(get)]
+
+				print ('c',cgraph)
+				
+				for item1 in graph1[i][str(get[0])]:
+					for item2 in graph2[i][str(get[1])]:
+
+						add = 0
+						'''
+						if disjoint == 1:
+							add = 1
+						else:
+						'''
+						tup4 = (int(item1),int(item2))
+						print ('tup',tup4)
+						varss = []
+						for var in pos:
+							posi = posstate[var]
+							print('posi',posi)
+							if posi[0] != -1 and posi[1] != -1:
+								if varstates1[item1][posi[0]] != varstates2[item2][posi[1]]:
+									add = 0
+									break
+							else:
+								add = 1
+
+
+
+
+						'''
+						for key, pos2 in posstate.items():
+							print ('key',key)
+							print ('pos',pos2)
+							if pos2[0] != -1 and pos2[1] != -1:
+								if varstates1[pos2[0]] == varstates2[pos2[1]]:
+									add = 1
+								else:
+									add = 0
+							if pos2[0] == -1 or pos2[1] == -1:
+								add = 1
+						'''
+						if add == 1:
+							toadd.add(str(tup4))
+							temp.add(tup4)
+							if not tup4 in nvarstates:
+								varss = []
+								for var in pos:
+									posi = posstate[var]
+									if posi[0] != -1:
+										varss.append(varstates1[item1][posi[0]])
+									elif posi[1] != -1:
+									 	varss.append(varstates2[item2][posi[1]])
+
+								nvarstates[str(tup4)] = []
+								nvarstates[str(tup4)].extend(varss)
+			
+			doing = temp
+
+		print('cg',cgraph)
+		print('var',nvarstates)
+
+		finalauto = final(str(end),cgraph,nvarstates,2)
+
+		outputing(cgraph, nvarstates, inputstr, str(end), -1)
+
+
+
+
+
+		
+
+
+
+
+
+
+
+
+
+
+
+
 		'''
 		auto = sc2.automata(0,0,0)
 		auto.reset()
@@ -713,9 +1051,9 @@ elif int(x) == 5:
 
 	print ('varstates all',varstates)
 
-	graph = gengraphs(autom,inputstr)
+	graph = gengraphs(autom,inputstr,varstates)
 
-	finalauto = final(autom,graph,varstates,2)
+	finalauto = final(autom.end,graph,varstates,2)
 
 	print ('varstates',autom.varstates)
 	time.sleep(1)
@@ -727,7 +1065,7 @@ elif int(x) == 5:
 			num1 = i
 			break
 
-	outputing(graph, varstates, inputstr, autom, num1)
+	outputing(graph, varstates, inputstr, autom.start, num1)
 
 elif int(x) == 6:
 	autom = sc2.main()
@@ -741,10 +1079,10 @@ elif int(x) == 6:
 	print ('varstates all',varstates)
 	autom.printauto()
 
-	graph = gengraphs(autom,inputstr)
+	graph = gengraphs(autom,inputstr,varstates)
 
-	finalauto = final(autom,graph,varstates,2)
+	finalauto = final(autom.end,graph,varstates,2)
 
 	print ('varstates',autom.varstates)
 	time.sleep(2)
-	outputing(graph, varstates, inputstr, autom, -1)
+	outputing(graph, varstates, inputstr, autom.start, -1)
