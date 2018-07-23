@@ -1,0 +1,16 @@
+digraph {
+	rankdir=LR size="8,5"
+	node [shape=doublecircle]
+	5
+	node [shape=circle]
+	0 -> 1 [label="x+"]
+	0 -> 6 [label="x+"]
+	1 -> 2 [label="y+"]
+	2 -> 3 [label="x-"]
+	3 -> 4 [label="y-"]
+	4 -> 5 [label="[sum]"]
+	6 -> 7 [label="x-"]
+	7 -> 8 [label=a]
+	10 -> 11 [label="[sum]"]
+	10 -> 4 [label="y+"]
+}
