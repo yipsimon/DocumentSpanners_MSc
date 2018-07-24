@@ -55,7 +55,7 @@ def funchk(auto):
 	key = {}		#Position of the specific varconfig, i.e. [x,y] => {'x': 0, 'y': 1}
 	template = list()
 	
-	for i in len(auto.varstates):
+	for i in range(len(auto.varstates)):
 		key[str(auto.varstates[i])] = i
 		template.append('w')
 
@@ -123,7 +123,11 @@ def funchk(auto):
 					closelist[dest] = closelist[origin]	
 
 	#Generate 'w','o','c' for each node based on openlist, closelist
+	print('openlist',openlist)
+	print('closelist',closelist)
+	print('autostates',auto.states)
 	for node in auto.states:
+		print('node',node)
 		opp = openlist[node]
 		cpp = closelist[node]
 		for config in auto.varstates:
@@ -167,19 +171,21 @@ def generateAg(auto,text,finallist):
 		extra = set([])
 		for edge in edges:
 			if edge[1] == text[0] or edge[1] == '[sum]':
-				nexttodo.add(key)
-				finalgraph[pos]['0'].add(key)
+				todonodes.add(key)
+				finalgraph[-1]['0'].add(key)
 			elif edge[1] == '[epsi]' and finallist[key] != finallist[edge[0]]:
 				extra.add(edge[0])
+		print ('extra',extra)
 		while extra:
 			exnode = extra.pop()
 			for edge in auto.transition[exnode]:
 				if edge[1] == text[0] or edge[1] == '[sum]':
-					nexttodo.add(exnode)
-					finalgraph[pos]['0'].add(exnode)
+					todonodes.add(key)
+					finalgraph[-1]['0'].add(key)
 				elif edge[1] == '[epsi]' and finallist[exnode] != finallist[edge[0]]:
 					extra.add(edge[0])
 
+	print('todonodes',todonodes)
 	letterpos = 0
 	while letterpos != len(text):
 		nexttodo = set([])
@@ -192,24 +198,39 @@ def generateAg(auto,text,finallist):
 					nexttodo.add(edge[0])
 					finalgraph[letterpos][currentnode].add(edge[0])
 					extratodo.add(edge[0])
+				elif edge[1] == '[epsi]' and finallist[currentnode] == finallist[edge[0]]:
+					extratodo.add(edge[0])
 
 			while extratodo:
 				extranode = extratodo.pop()
 				for edge in auto.transition[extranode]:
-					if edge[1] == '[epsi]' and finalgraph[extranode] != finalgraph[edge[0]]:
+					if edge[1] == '[epsi]' and finallist[extranode] != finallist[edge[0]]:
 						nexttodo.add(edge[0])
 						finalgraph[letterpos][currentnode].add(edge[0])
 						extratodo.add(edge[0])
-		
-		todonode = nexttodo
+					elif edge[1] == '[epsi]' and finallist[currentnode] == finallist[edge[0]]:
+						extratodo.add(edge[0])
+		print('todonodes',todonodes)
+		print('nexttodo',nexttodo)
+		todonodes = todonodes | nexttodo
+		print('todonodes',todonodes)
 		letterpos += 1
-
+		print ('letterpos',letterpos)
+	print(finalgraph)
+	
 	tokeepnodes = set([str(auto.end)])
+	print('tokeepnodes',tokeepnodes)
 	for i in range(len(text)-1,-2,-1):
-		updatetokeep = set([])
+		print('i',i)
+		updatetokeep = set([])	
+		
 		for key, edges in finalgraph[i].items():
-			if tokeepnodes & edges:
-				edges = tokeepnodes & edges
+			print('key',key)
+			print('edges',edges)
+			print(tokeepnodes & edges)
+			for item in edges:
+				print(tokeepnodes & {item})
+				if tokeepnodes & {item}:
 				updatetokeep.add(key)
 			else:
 				del finalgraph[i][key]
@@ -218,6 +239,7 @@ def generateAg(auto,text,finallist):
 	return finalgraph
 
 def finalauto(graph,finallist,last):
+	print('graph',graph)
 	finalgraph = {}
 	final = -1
 	for positions, nodes in graph.items():
@@ -225,11 +247,12 @@ def finalauto(graph,finallist,last):
 			start = 'q0'
 		else:
 			start = (positions, nodes)
-		ifnotlv1(finalgraph,node1)
+
+		ifnotlv1(finalgraph,str(start))
 		for edge in nodes:
 			value = finallist[edge]
 			end = (positions+1, edge)
-			finalgraph[node1].append([end,value])
+			finalgraph[str(start)].append((end,value))
 		if positions > final:
 			final = positions
 
@@ -239,6 +262,8 @@ def finalauto(graph,finallist,last):
 	autograph.start = 'q0'
 	autograph.end = str(endnode)
 	autograph.transition = finalgraph
+	print('autotran',autograph.transition)
+	time.sleep(10)
 
 	return autograph
 
@@ -268,16 +293,18 @@ def printresults(listofoutputs):
 	for i in range(len(listofoutputs)):
 		print (listofoutputs[i])
 
-def projectionv2(results,key,listofprojections):
-	posvalues = []
-	for var in listofprojections:
-		posvalue.append(key[var])
-	posvalue.sort()
-	for i in range(len(results)):
+def projectionv2(finallist,key,listofprojections):
+	tokeep = []
+	for item in listofprojections:
+		tokeep.append(key[item])
+
+	for key, item in finallist:
 		temp = []
-		for j in posvalue:
-			temp.append(results[j])
-		print (temp)
+		for pos in tokeep:
+			temp.append( item[pos] )
+		finallist[key] = temp
+
+
 
 
 def minstring(integer,stacks,finalgraph,totallength,finallist,availableletters,letterofedges):

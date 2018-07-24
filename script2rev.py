@@ -3,15 +3,15 @@ from arpeggio import Optional, ZeroOrMore, OneOrMore, EOF, \
     ParserPython, PTNodeVisitor, visit_parse_tree
 from arpeggio import RegExMatch as _
 from arpeggio import ParserPython
-import sys
+import sys, time, re
 #dot -Tpng -O .dot
 
-def alphabet():	return [_(r'.'), "[epsi]","[sum]"]
-def varconfig(): 	return "[", _(r'[a-z]') ,":", expression,"]"
+def alphabet():	return _(r'[a-zA-Z0-9]')
+def varconfig(): 	return "[", _(r'[a-zA-Z0-9]') ,":", expression,"]"
 def terminals():	return [alphabet, varconfig, ("(", expression, ")")]
 def plus(): 		return terminals,"+"
 def star():			return terminals,"*"
-def concat():		return terminals, OneOrMore("&", terminals)
+def concat():		return terminals, OneOrMore(",", terminals)
 def union(): 		return terminals, OneOrMore("|", terminals)
 def expression():	return [concat, union, varconfig, plus, star, terminals]
 def formula():		return OneOrMore(expression)
@@ -21,6 +21,7 @@ class automata():
 	def __init__(self,startnode,endnode,value):
 		self.start = startnode
 		self.end = endnode
+		self.last = endnode
 		self.varstates = []
 		self.states = set([startnode,endnode])
 		self.transition = {startnode: [(endnode,value)], endnode: []}
@@ -41,6 +42,12 @@ class automata():
 				temp[str(key)].append(nitem)
 
 		self.transition = temp
+		temp2 = []
+		for item in self.states:
+			temp2.append(str(item))
+		self.states = temp2
+
+
 		
 	def renumber(self,num):
 		self.start += num
@@ -149,6 +156,7 @@ class automata():
 		print ('end',self.end)
 		print ('varstates',self.varstates)
 		print ('states',self.states)
+		print ('last',self.last)
 		print ('transition',self.transition)
 
 
@@ -157,6 +165,7 @@ class formVisitor(PTNodeVisitor):
 	def visit_alphabet(self, node, children):
 		print ('LETTER')
 		print ('node.value',node.value)
+		#time.sleep(10)
 		auto = automata(0,1,node.value)
 		auto.printauto()
 		return auto
@@ -220,7 +229,9 @@ def main(argv):
 	parse_tree = parser.parse(argv)
 	result = visit_parse_tree(parse_tree, formVisitor())
 
-	#result.printauto()
+	result.printauto()
+
+	#time.sleep(10)
 	result.tostr()
 	return result
 	#print("{} = {}".format(input_regex, result))
