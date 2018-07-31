@@ -2,7 +2,7 @@ import script2rev as sc2
 import scriptgrph as sg
 import script1rev as sc1
 import threading, time, sys, copy, objgraph, random, inspect
-from memory_profiler import profile
+
 
 def convertregex(regex):
 	auto = sc2.main(regex)
@@ -403,7 +403,7 @@ def createauto(item,string,varstates):
 	#auto.transition[node+1] = []
 
 	return auto, node, breaking
-@profile 
+ 
 def combinationauto(mainauto,maindest,mainshortcut,item,string,varstates):
 	auto, dest, shortcut = createauto(item,string,varstates)
 	#print('mainauto',mainauto.transition)
@@ -522,8 +522,6 @@ auto1,dest1,shortcut = combinationauto(auto1,dest1,shortcut,(1,1,1),'abc',['x','
 sg.printgraph(auto1,'test')
 '''
 
-
-@profile 
 def main():
 	start_time = time.time()
 	string1 = 'a'*20
@@ -531,6 +529,7 @@ def main():
 	print(sys.getsizeof(string1))
 	auto1 = stringequality(string1)
 	print(sys.getsizeof(auto1))
+	auto1.printauto()
 	print("--- %s seconds ---" % (time.time() - start_time))
 	objgraph.show_most_common_types()	
 

@@ -79,6 +79,8 @@ sg.printgraph(automata,'g2')
 string1 = 'a'*20
 print(string1)
 print(sys.getsizeof(string1))
+print(sys.getsizeof([]*80))
 auto1 = sc3.stringequality(string1)
+print(sys.getsizeof(auto1))
 print("--- %s seconds ---" % (time.time() - start_time))
 objgraph.show_most_common_types()
