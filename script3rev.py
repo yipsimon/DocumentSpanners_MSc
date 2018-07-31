@@ -15,8 +15,8 @@ def functionalcheck(auto):
 
 	sc1.csymtonull(auto,varedges)
 
-	sg.printgraph(auto,'g1')
-	
+	#sg.printgraph(auto,'g1')
+
 	return finallist, key
 
 def normalprocess(auto,text,finallist):
@@ -29,6 +29,7 @@ def normalprocess(auto,text,finallist):
 
 	sg.printgraph(finalprintable,'g2')
 
+
 	outputs = sc1.calcresults(finalgraph, len(text), finallist)
 
 	return outputs
@@ -40,8 +41,35 @@ def printresults(outputs):
 def projectionver1(auto,text,listofprojections,finallist, key):
 	
 	sc1.projectionv1(auto,listofprojections)
-	
-	outputs = normalprocess(auto,text)
+
+	print('key',key)
+	print('finallist',finallist)
+	newkey = {}
+	subtract = 0
+	listing = []
+	listingletters = []
+	for k in key.keys():
+		if k in listofprojections:
+			listing.append(key[k])
+			listingletters.append(k)
+	for i in range(len(listingletters)):
+		newkey[str(listingletters[i])] = i
+
+	for ky, item in finallist.items():
+		tempstate = []
+		print('ky',ky)
+		print('item',item)
+		for pos in listing:
+			print('pos',pos)
+			tempstate.append(item[pos])
+		print('tempstate',tempstate)
+		finallist[ky] = tempstate
+	print('key',key)
+	print('newkey',newkey)
+	print('finallist',finallist)
+
+
+	outputs = normalprocess(auto,text,finallist)
 
 	printresults(outputs)
 
@@ -49,15 +77,41 @@ def projectionver2(auto,text,listofprojections,finallist, key):
 
 	finalgraph = sc1.generateAg(auto,text,finallist)
 
-	finalprintable = finalauto(finalgraph,finallist,auto.end)
+	finalprintable = sc1.finalauto(finalgraph,finallist,auto.end)
 
 	sg.printgraph(finalprintable,'g2')
 
-	projectionv2(finallist,key,listofprojections)
+	#sc1.projectionv2(finallist,key,listofprojections)
+	print('key',key)
+	print('finallist',finallist)
+	newkey = {}
+	subtract = 0
+	listing = []
+	listingletters = []
+	for k in key.keys():
+		if k in listofprojections:
+			listing.append(key[k])
+			listingletters.append(k)
+	for i in range(len(listingletters)):
+		newkey[str(listingletters[i])] = i
+
+	for ky, item in finallist.items():
+		tempstate = []
+		print('ky',ky)
+		print('item',item)
+		for pos in listing:
+			print('pos',pos)
+			tempstate.append(item[pos])
+		print('tempstate',tempstate)
+		finallist[ky] = tempstate
+	print('key',key)
+	print('newkey',newkey)
+	print('finallist',finallist)
 
 	outputs = sc1.calcresults(finalgraph, len(text), finallist)
 
-	sc1.projectionv2(outputs)
+	printresults(outputs)
+
 
 def isnotlv5(table,key):
 	if not key in table:
@@ -96,7 +150,8 @@ def joincreate(auto1,auto2,key1,key2):
 def joinver1(auto1,auto2):	
 	finallist1, key1, varedges1 = sc1.funchk(auto1)
 	finallist2, key2, varedges2 = sc1.funchk(auto2)
-
+	print('finallist1',finallist1)
+	print('finallist2',finallist2)
 	sc1.csymtonull(auto1,varedges1)
 	sc1.csymtonull(auto2,varedges2)
 
@@ -104,18 +159,23 @@ def joinver1(auto1,auto2):
 
 	key3 = {}
 	template = list()
-	for i in len(auto.varstates):
+	for i in range(len(auto.varstates)):
 		key3[str(auto.varstates[i])] = i
 		template.append('w')
 
 	
 	todo = set([(auto1.start,auto2.start)])
 	done = set([])
-	finallist = {(auto1.start,auto2.start): template}
+	finallist = {str((auto1.start,auto2.start)): template}
 	while todo:
+		print('todo\n',todo)
 		currentnode = todo.pop()
+		done.add(currentnode)
+		print('currentnode\n',currentnode)
+		print('\n')
 		seen = set([])
 		for edge1 in auto1.transition[currentnode[0]]:
+			print('edge1',edge1)
 			fail = 0
 			for variable in auto.varstates:
 				if keytemp[variable][0] == -1 or keytemp[variable][1] == -1:
@@ -125,23 +185,29 @@ def joinver1(auto1,auto2):
 					break
 			dest = (edge1[0],currentnode[1])
 			if fail == 0 and (not seen & {dest}):
-				isnotlv5(auto.transition,currentnode)
-				isnotlv5(finallist,dest)
+				seen.add(dest)
+				finallist[str(dest)] = []
+				finallist[str(dest)].extend(template)
+				isnotlv5(auto.transition,str(currentnode))
+				#isnotlv5(finallist,dest)
 				for variable in auto.varstates:
-					if keytemp[variable][0] != -1 and keytemp[variable][1] == -1:
-						finallist[dest].append(finallist1[edge1[0]][keytemp[variable][0]])
-					elif keytemp[variable][1] != -1 and keytemp[variable][0] == -1:
-						finallist[dest].append(finallist2[currentnode[1]][keytemp[variable][1]])
+					tup = keytemp[variable]
+					if tup[0] != -1 and tup[1] == -1:
+						finallist[str(dest)][0] = finallist1[str(dest[0])][tup[0]]
+					elif tup[1] != -1 and tup[0] == -1:
+						finallist[str(dest)][1] = finallist2[str(dest[1])][tup[1]]
 					else:
-						finallist[dest].append(finallist1[edge1[0]][keytemp[variable][0]])
+						finallist[str(dest)][0] = finallist1[str(dest[0])][tup[0]]
+						finallist[str(dest)][1] = finallist2[str(dest[1])][tup[1]]
 
-				end = (dest, edge1[1])
-				auto.transition[currentnode].append(end)
+				end = (str(dest), edge1[1])
+				auto.transition[str(currentnode)].append(end)
 				if not done & {dest}:
 					todo.add(dest)
-					seen.add(dest)
-
-		for edge2 in auto1.transition[currentnode[1]]:
+					
+		print('final',finallist)
+		for edge2 in auto2.transition[currentnode[1]]:
+			print('edge2',edge2)
 			fail = 0
 			for variable in auto.varstates:
 				if keytemp[variable][0] == -1 or keytemp[variable][1] == -1:
@@ -151,25 +217,30 @@ def joinver1(auto1,auto2):
 					break
 			dest = (currentnode[0],edge2[0])
 			if fail == 0 and (not seen & {dest}):
-				isnotlv5(auto.transition,currentnode)
-				isnotlv5(finallist,dest)
+				seen.add(dest)
+				finallist[str(dest)] = []
+				finallist[str(dest)].extend(template)
+				isnotlv5(auto.transition,str(currentnode))
+				#isnotlv5(finallist,dest)
 				for variable in auto.varstates:
-					if keytemp[variable][0] != -1 and keytemp[variable][1] == -1:
-						finallist[dest].append(finallist1[edge2[0]][keytemp[variable][0]])
-					elif keytemp[variable][1] != -1 and keytemp[variable][0] == -1:
-						finallist[dest].append(finallist2[currentnode[1]][keytemp[variable][1]])
+					tup = keytemp[variable]
+					if tup[0] != -1 and tup[1] == -1:
+						finallist[str(dest)][0] = finallist1[str(dest[0])][tup[0]]
+					elif tup[1] != -1 and tup[0] == -1:
+						finallist[str(dest)][1] = finallist2[str(dest[1])][tup[1]]
 					else:
-						finallist[dest].append(finallist1[edge2[0]][keytemp[variable][0]])
+						finallist[str(dest)][0] = finallist1[str(dest[0])][tup[0]]
+						finallist[str(dest)][1] = finallist2[str(dest[1])][tup[1]]
 
-				end = (dest, edge2[1])
-				auto.transition[currentnode].append(end)
+				end = (str(dest), edge2[1])
+				auto.transition[str(currentnode)].append(end)
 				if not done & {dest}:
 					todo.add(dest)
-					seen.add(dest)
+					
 
-		done.add(currentnode)
+		
 
-	return auto
+	return auto, finallist, key3
 
 #Not sure 
 def joinver2(auto1,auto2):
@@ -189,48 +260,49 @@ def joinver2(auto1,auto2):
 		template.append('w')
 
 	finalgraph = {}
-	for i in range(len(text)):
+	for i in range(-1,len(text)):
 		finalgraph[i] = {}
 
 	#finalgraph[-1] = {auto.start: set([])}
 	finallist = {}
 	nodes = set([])
-	done = set([])
+	nextnodes = set([])
 	for i in range(-1,len(text)):
-		nextnodes = set([])
 		if i == -1:
-			for edge1 in finalgraph1[i][auto1.start]:
-				for edge2 in finalgraph2[i][auto2.start]:
-					dest = (edge1,edge2)
+			for edge1 in finalgraph1[i]['0']:
+				for edge2 in finalgraph2[i]['0']:
 					fail = 0
 					for variable in auto.varstates:
 						if keytemp[variable][0] == -1 or keytemp[variable][1] == -1:
 							fail = 0
-						elif finallist1[edge1[0]][keytemp[variable][0]] != finallist2[currentnode[1]][keytemp[variable][1]]:
+						elif finallist1[currentnode[0]][keytemp[variable][0]] != finallist2[edge2[0]][keytemp[variable][1]]:
 							fail = 1
 							break
+					dest = (edge1,edge2)
 					if fail == 0:
-						isnotlv5(auto.transition,currentnode)
-						isnotlv5(finallist,dest)
+						finallist[str(dest)] = []
+						finallist[str(dest)].extend(template)
+						isnotlv5(auto.transition,str(currentnode))
+						#isnotlv5(finallist,dest)
 						for variable in auto.varstates:
-							if keytemp[variable][0] != -1 and keytemp[variable][1] == -1:
-								finallist[dest].append(finallist1[edge1[0]][keytemp[variable][0]])
-							elif keytemp[variable][1] != -1 and keytemp[variable][0] == -1:
-								finallist[dest].append(finallist2[currentnode[1]][keytemp[variable][1]])
+							tup = keytemp[variable]
+							if tup[0] != -1 and tup[1] == -1:
+								finallist[str(dest)][0] = finallist1[str(dest[0])][tup[0]]
+							elif tup[1] != -1 and tup[0] == -1:
+								finallist[str(dest)][1] = finallist2[str(dest[1])][tup[1]]
 							else:
-								finallist[dest].append(finallist1[edge1[0]][keytemp[variable][0]])
-
-						end = (dest, edge1[1])
-						auto.transition[currentnode].append(end)
-						if not done & {dest}:
-							nextnodes.add(dest)
-
+								finallist[str(dest)][0] = finallist1[str(dest[0])][tup[0]]
+								finallist[str(dest)][1] = finallist2[str(dest[1])][tup[1]]
+					end = (str(dest), edge2[1])
+					ed = str(dest)
+					finalgraph[i]['0'].append(ed)
+					nextnodes.add(dest)
+			nodes = nodes | nextnodes
 		else:
 			while nodes:
 				currentnode = nodes.pop()
 				for edge1 in finalgraph1[i][currentnode[0]]:
 					for edge2 in finalgraph2[i][currentnode[1]]:
-						dest = (edge1,edge2)
 						fail = 0
 						for variable in auto.varstates:
 							if keytemp[variable][0] == -1 or keytemp[variable][1] == -1:
@@ -238,26 +310,26 @@ def joinver2(auto1,auto2):
 							elif finallist1[currentnode[0]][keytemp[variable][0]] != finallist2[edge2[0]][keytemp[variable][1]]:
 								fail = 1
 								break
-						
-						if fail == 0 and (not seen & {dest}):
-							isnotlv5(auto.transition,currentnode)
-							isnotlv5(finallist,dest)
+						dest = (edge1,edge2)
+						if fail == 0:
+							finallist[str(dest)] = []
+							finallist[str(dest)].extend(template)
+							isnotlv5(auto.transition,str(currentnode))
+							#isnotlv5(finallist,dest)
 							for variable in auto.varstates:
-								if keytemp[variable][0] != -1 and keytemp[variable][1] == -1:
-									finallist[dest].append(finallist1[edge2[0]][keytemp[variable][0]])
-								elif keytemp[variable][1] != -1 and keytemp[variable][0] == -1:
-									finallist[dest].append(finallist2[currentnode[1]][keytemp[variable][1]])
+								tup = keytemp[variable]
+								if tup[0] != -1 and tup[1] == -1:
+									finallist[str(dest)][0] = finallist1[str(dest[0])][tup[0]]
+								elif tup[1] != -1 and tup[0] == -1:
+									finallist[str(dest)][1] = finallist2[str(dest[1])][tup[1]]
 								else:
-									finallist[dest].append(finallist1[edge2[0]][keytemp[variable][0]])
-
-							end = (dest, edge2[1])
-							auto.transition[currentnode].append(end)
-							if not done & {dest}:
-								nextnodes.add(dest)
-
-				done.add(currentnode)
-
-		nodes = nextnodes						
+									finallist[str(dest)][0] = finallist1[str(dest[0])][tup[0]]
+									finallist[str(dest)][1] = finallist2[str(dest[1])][tup[1]]
+						end = (str(dest), edge2[1])
+						ed = str(dest)
+						finalgraph[i][str(currentnode)].append(ed)
+						nextnodes.add(dest)
+			nodes = nodes | nextnodes
 		
 	return auto
 

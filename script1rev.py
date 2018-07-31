@@ -147,26 +147,27 @@ def csymtonull(auto,varedges):
 
 def projectionv1(auto,projections):
 	ext = ['+','-']
-	for key, edges in auto.transitions.items():
+	for key, edges in auto.transition.items():
 		for edge in edges:
 			if edge[1][-1] in ext:
 				if edge[1][0] not in projection:
 					auto.transition[key].remove(edge)
 					newedge = (edge[0],'[epsi]')
 					auto.transition[edge[0]].append(newedge)
+	auto.varstates = projections
 
-def foundepsilon(auto,finalgraph,currentnode,edgenode,text,letterpos,nexttodo,extratodo,finallist):
+def foundepsilon(auto,finalgraph,currentnode,edgenode,text,letterpos,extratodo,finallist):
 	for edge in auto.transition[edgenode]:
 		if edge[1] == text[letterpos] or edge[1] == '[sum]':
+			print('foundmatch2')
 			if letterpos == len(text)-1:
 				if edge[0] == auto.end:
 					finalgraph[letterpos][currentnode].add(edge[0])		
 			else:
-				nexttodo.add(edge[0])
 				finalgraph[letterpos][currentnode].add(edge[0])
 			extratodo.add(edge[0])
 		elif edge[1] == '[epsi]' and finallist[edgenode] == finallist[edge[0]]:
-			foundepsilon(auto,finalgraph,currentnode,edge[0],text,letterpos,nexttodo,extratodo,finallist)
+			foundepsilon(auto,finalgraph,currentnode,edge[0],text,letterpos,extratodo,finallist)
 
 def generateAg(auto,text,finallist):
 	finalgraph = {}
@@ -184,73 +185,84 @@ def generateAg(auto,text,finallist):
 		seenlist.add(item)
 		for tup in auto.transition[item]:
 			if tup[1] == text[0]:
-				nxsetnodes.add(key)
-				finalgraph[-1]['0'].add(key)
+				nxsetnodes.add(item)
+				finalgraph[-1]['0'].add(item)
 			if tup[1] == '[epsi]' and ({str(tup[1])} not in seenlist):
 				tochecklist.add(str(tup[0]))
+	
+	print('nxsetnodes \n',nxsetnodes)
 
-	for key, edges in auto.transition.items():
-		extra = set([])
-		for edge in edges:
-			if edge[1] == text[0] or edge[1] == '[sum]':
-				
-			elif edge[1] == '[epsi]' and finallist[key] != finallist[edge[0]]:
-				extra.add(edge[0])
-		print ('extra',extra)
-		while extra:
-			exnode = extra.pop()
-			for edge in auto.transition[exnode]:
-				if edge[1] == text[0] or edge[1] == '[sum]':
-					todonodes.add(key)
-					finalgraph[-1]['0'].add(key)
-				elif edge[1] == '[epsi]' and finallist[exnode] != finallist[edge[0]]:
-					extra.add(edge[0])
-	print('finalgraph',finalgraph)
-	print('todonodes \n',todonodes)
-
-	#time.sleep(4)
+	
 	for i in range(len(text)):
 		nexttodo = set([])
-		while todonodes:
+		while nxsetnodes:
 			extratodo = set([])
-			currentnode = todonodes.pop()
+			currentnode = nxsetnodes.pop()
+			print('currentnode',currentnode)
+			print('currentnode, tran',auto.transition[currentnode])
 
 			for edge in auto.transition[currentnode]:
+				print('edge',edge)
 				if edge[1] == text[i] or edge[1] == '[sum]':
-					ifnotlv3(finalgraph, i, currentnode)
+					print('foundmatch')
 					if i == len(text)-1:
 						if edge[0] == auto.end:
+							ifnotlv3(finalgraph, i, currentnode)
 							finalgraph[i][currentnode].add(edge[0])	
 					else:
-						nexttodo.add(edge[0])
+						ifnotlv3(finalgraph, i, currentnode)
 						finalgraph[i][currentnode].add(edge[0])
 					extratodo.add(edge[0])
 				elif edge[1] == '[epsi]' and finallist[currentnode] == finallist[edge[0]]:
 					ifnotlv3(finalgraph, i, currentnode)
-					foundepsilon(auto,finalgraph,currentnode,edge[0],text,i,nexttodo,extratodo,finallist)
-
+					foundepsilon(auto,finalgraph,currentnode,edge[0],text,i,extratodo,finallist)
+			print(finalgraph)
+			print('extratodo',extratodo)
+			#seenlist = set([])
+			#states = finallist[currentnode]
 			while extratodo:
 				extranode = extratodo.pop()
+				print('extranode',extranode)
+				#seenlist.add(extranode)
+				print('extranode trans',auto.transition[extranode])
 				for edge in auto.transition[extranode]:
+					print('edge',edge)
 					if edge[1] == '[epsi]' and finallist[extranode] != finallist[edge[0]]:
-						ifnotlv3(finalgraph, i, currentnode)
+						print('match3')
 						if i == len(text)-1:
 							if edge[0] == auto.end:
+								ifnotlv3(finalgraph, i, currentnode)			
 								finalgraph[i][currentnode].add(edge[0])		
 						else:
-							nexttodo.add(edge[0])
+							ifnotlv3(finalgraph, i, currentnode)			
 							finalgraph[i][currentnode].add(edge[0])
+						#if edge[0] not in seenlist:
 						extratodo.add(edge[0])
-					elif edge[1] == '[epsi]' and finallist[currentnode] == finallist[edge[0]]:
-						extratodo.add(edge[0])
+						#states = finallist[edge[0]]
+					elif edge[1] == '[epsi]' and finallist[extranode] == finallist[edge[0]]:
+						print('match4')
+						if edge[0] == str(auto.end):
+							finalgraph[i][currentnode].add(edge[0])
+						else:
+							#if edge[0] not in seenlist:
+							extratodo.add(edge[0])
+				print('extratodo0',extratodo)
+			if currentnode in finalgraph[i]:
+				nexttodo = nexttodo | finalgraph[i][currentnode]
+			print(finalgraph)
+			print('extratodo',extratodo)
+			
+
+		print(finalgraph)
 		
-		print('todonodes',todonodes)
+		print('nxsetnodes',nxsetnodes)
 		print('nexttodo',nexttodo)
-		todonodes = todonodes | nexttodo
-		print('todonodes',todonodes)
+		nxsetnodes = nxsetnodes | nexttodo
+		print('nxsetnodes \n',nxsetnodes)
 
 
-		print('finalgraph \n', finalgraph)
+		
+		#print('finalgraph \n', finalgraph)
 		#time.sleep(4)
 	
 	tokeepnodes = set([str(auto.end)])
@@ -259,24 +271,31 @@ def generateAg(auto,text,finallist):
 		print('i',i)
 		updatetokeep = set([])
 		list0 = list(finalgraph[i].keys())
+		print ('list0',list0)
 		for key in list0:
+			print('key',key)
 			list1 = list(finalgraph[i][key])
-			for edges in list1:
-				print('edges',edges)
-				for item in edges:
-					if {item} & tokeepnodes:
-						updatetokeep.add(key)
-					else:
-						finalgraph[i][key].remove(item)
+			print ('list1',list1)
+			for item in list1:
+				print('item',item)
+				if {str(item)} & tokeepnodes:
+					updatetokeep.add(key)
+				else:
+					finalgraph[i][key].remove(item)
+
 			
 			if len(finalgraph[i][key]) == 0:
 				del finalgraph[i][key]
-
+		print('finalgraph \n', finalgraph)
+		print ('updatetokeep',updatetokeep)
 		tokeepnodes = set([])
 		tokeepnodes = tokeepnodes | updatetokeep
+		print ('tokeepnodes',tokeepnodes)
+		
 
-	print('finalgraph \n', finalgraph)
-	time.sleep(10)
+	print('\nfinalgraph \n', finalgraph)
+	
+	
 
 	return finalgraph
 
@@ -321,25 +340,10 @@ def finalauto(graph,finallist,last):
 	return autograph
 
 
-
-
 def printresults(listofoutputs):
 	print ('\n results')
 	for i in range(len(listofoutputs)):
 		print (listofoutputs[i])
-
-def projectionv2(finallist,key,listofprojections):
-	tokeep = []
-	for item in listofprojections:
-		tokeep.append(key[item])
-
-	for key, item in finallist:
-		temp = []
-		for pos in tokeep:
-			temp.append( item[pos] )
-		finallist[key] = temp
-
-
 
 
 def minString(integer,stacks,finalgraph,totallength,finallist,availableletters,letterofedges,template):
