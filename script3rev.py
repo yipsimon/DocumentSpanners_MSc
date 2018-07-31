@@ -1,7 +1,8 @@
 import script2rev as sc2
 import scriptgrph as sg
 import script1rev as sc1
-import threading, time, sys, copy
+import threading, time, sys, copy, objgraph, random, inspect
+from memory_profiler import profile
 
 def convertregex(regex):
 	auto = sc2.main(regex)
@@ -170,6 +171,7 @@ def joinver1(auto1,auto2):
 	while todo:
 		print('todo\n',todo)
 		currentnode = todo.pop()
+		auto.states.add(str(currentnode))
 		done.add(currentnode)
 		print('currentnode\n',currentnode)
 		print('\n')
@@ -190,15 +192,22 @@ def joinver1(auto1,auto2):
 				finallist[str(dest)].extend(template)
 				isnotlv5(auto.transition,str(currentnode))
 				#isnotlv5(finallist,dest)
+				print('keytemp',keytemp)
 				for variable in auto.varstates:
 					tup = keytemp[variable]
+					print('tup',tup)
+					print ('dest',dest)
+					print('finallist',finallist)
 					if tup[0] != -1 and tup[1] == -1:
-						finallist[str(dest)][0] = finallist1[str(dest[0])][tup[0]]
+						#finallist[str(dest)][0] = finallist1[str(dest[0])][tup[0]]
+						finallist[str(dest)][key3[variable]] = finallist1[str(dest[0])][tup[0]]
 					elif tup[1] != -1 and tup[0] == -1:
-						finallist[str(dest)][1] = finallist2[str(dest[1])][tup[1]]
+						#finallist[str(dest)][1] = finallist2[str(dest[1])][tup[1]]
+						finallist[str(dest)][key3[variable]] = finallist2[str(dest[1])][tup[1]]
 					else:
-						finallist[str(dest)][0] = finallist1[str(dest[0])][tup[0]]
-						finallist[str(dest)][1] = finallist2[str(dest[1])][tup[1]]
+						finallist[str(dest)][key3[variable]] = finallist1[str(dest[0])][tup[0]]
+						#finallist[str(dest)][0] = finallist1[str(dest[0])][tup[0]]
+						#finallist[str(dest)][1] = finallist2[str(dest[1])][tup[1]]
 
 				end = (str(dest), edge1[1])
 				auto.transition[str(currentnode)].append(end)
@@ -394,7 +403,7 @@ def createauto(item,string,varstates):
 	#auto.transition[node+1] = []
 
 	return auto, node, breaking
-
+@profile 
 def combinationauto(mainauto,maindest,mainshortcut,item,string,varstates):
 	auto, dest, shortcut = createauto(item,string,varstates)
 	#print('mainauto',mainauto.transition)
@@ -429,6 +438,7 @@ def combinationauto(mainauto,maindest,mainshortcut,item,string,varstates):
 		#print('auto.end',auto.end)
 		#print('beforemainauto',mainauto.transition)
 		mainauto.transition[auto.end].append( (maindest,lastedge[1]) )
+		mainauto.states = mainauto.states | {auto.end}
 		#mainauto.addedge(auto.end,maindest,lastedge[1])
 		#print('automainauto',mainauto.transition)
 
@@ -457,6 +467,7 @@ def combinationauto(mainauto,maindest,mainshortcut,item,string,varstates):
 		#print('auto.end',auto.end)
 		#print('beforemainauto',mainauto.transition)
 		mainauto.transition[auto.end].append( (mainauto.end,lastedge[1]) )
+		mainauto.states = mainauto.states | {auto.end}
 		#mainauto.addedge(auto.end,mainauto.end,lastedge[1])
 		#print('aftermainauto',mainauto.transition)
 
@@ -470,22 +481,35 @@ def combinationauto(mainauto,maindest,mainshortcut,item,string,varstates):
 	return mainauto, maindest, mainshortcut
 
 def stringequality(string):
-	listoftup = []
-	for i in range(len(string)+1):
+	#listoftup = []
+	count = 0
+	for i in range(1,len(string)+2):
 		for j in range(1,len(string)+2-i):
 			for k in range(1,len(string)+2-i):
 				if string[j-1:j+i-1] == string[k-1:k+i-1]:
-					listoftup.append((i,j,k))
-	print(listoftup)
-	print(len(listoftup))
-
+					if count == 0:
+						autostring, deststring, shortcut = createauto((i,j,k),string,['x','y'])	
+					else:
+						autostring,deststring,shortcut = combinationauto(autostring,deststring,shortcut,(i,j,k),string,['x','y'])
+					#listoftup.append((i,j,k))
+					count += 1
+	#print(listoftup)
+	#print(len(listoftup))
+	#print(count)
+	#print('listoftup mem',sys.getsizeof(listoftup))
+	'''
 	autostring, deststring, shortcut = createauto(listoftup[0],string,['x','y'])	
 
 	for i in range(1,len(listoftup)):
 		autostring,deststring,shortcut = combinationauto(autostring,deststring,shortcut,listoftup[i],string,['x','y'])
 		#sg.printgraph(autostring,str(i))
-
-	sg.printgraph(autostring,'final')
+	'''
+	autostring.tostr()
+	autostring.start = str(autostring.start)
+	autostring.end = str(autostring.end)
+	#autostring.printauto()
+	#sg.printgraph(autostring,'final')
+	return autostring
 
 
 '''
@@ -497,5 +521,19 @@ auto1,dest1,shortcut = combinationauto(auto1,dest1,shortcut,(1,1,1),'abc',['x','
 #auto1.printauto()
 sg.printgraph(auto1,'test')
 '''
-	
+
+
+@profile 
+def main():
+	start_time = time.time()
+	string1 = 'a'*20
+	print(string1)
+	print(sys.getsizeof(string1))
+	auto1 = stringequality(string1)
+	print(sys.getsizeof(auto1))
+	print("--- %s seconds ---" % (time.time() - start_time))
+	objgraph.show_most_common_types()	
+
+if __name__ == "__main__":
+	main()
 

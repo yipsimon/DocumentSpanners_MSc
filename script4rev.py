@@ -2,14 +2,12 @@ import script2rev as sc2
 import script3rev as sc3
 import scriptgrph as sg
 import script1rev as sc1
-import threading, time, sys, copy
+import threading, time, sys, copy, objgraph, random, inspect
 
 start_time = time.time()
-'''
-string1 = 'a'*3
-print(string1)
-sc3.stringequality(string1)
 
+
+'''
 
 string = 'aaa'
 reg1 = '(a*),[x:(a*)],(a*)'
@@ -18,17 +16,33 @@ automata1 = sc3.convertregex(reg)
 automata2 = sc3.convertregex(reg2)
 
 
+
+
+
+
 automata = sc2.automata(0,0,0)
 automata.reset()
-automata.states = automata.states | {'0','1','2'}
-automata.varstates = ['x']
+automata.states = automata.states | {'0','1','2','3','4'}
+automata.varstates = ['x','y']
 automata.transition['0'] = [('0','a'),('1','x+')]
 automata.transition['1'] = [('1','a'),('2','x-')]
-automata.transition['2'] = [('2','a')]
+automata.transition['2'] = [('2','a'),('3','y+')]
+automata.transition['3'] = [('3','a'),('4','y-')]
+automata.transition['4'] = [('4','a')]
 automata.start = '0'
-automata.end = '2'
-automata.last = '2'
-'''
+automata.end = '4'
+automata.last = '4'
+
+
+sys.exit(1)
+#data = sc3.projectionver2(automata,string,['x'],varconfiglist,key)
+
+data = sc3.normalprocess(automata,string,varconfiglist)
+
+sc3.printresults(data)
+
+auto2, varconfiglist, key = sc3.joinver1(automata,auto1)
+
 string = 'aaa'
 automata1 = sc2.automata(0,0,0)
 automata2 = sc2.automata(0,0,0)
@@ -61,11 +75,10 @@ print('\nkey\n')
 print(key)
 automata.printauto()
 sg.printgraph(automata,'g2')
-sys.exit(1)
-#data = sc3.projectionver2(automata,string,['x'],varconfiglist,key)
-
-data = sc3.normalprocess(automata,string,varconfiglist)
-
-sc3.printresults(data)
-
+'''
+string1 = 'a'*20
+print(string1)
+print(sys.getsizeof(string1))
+auto1 = sc3.stringequality(string1)
 print("--- %s seconds ---" % (time.time() - start_time))
+objgraph.show_most_common_types()
