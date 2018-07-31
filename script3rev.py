@@ -6,7 +6,7 @@ import threading, time, sys, copy
 def convertregex(regex):
 	auto = sc2.main(regex)
 	
-	sg.printgraph(auto,'g1')
+	#sg.printgraph(auto,'g1')
 
 	return auto
 
@@ -15,6 +15,8 @@ def functionalcheck(auto):
 
 	sc1.csymtonull(auto,varedges)
 
+	sg.printgraph(auto,'g1')
+	
 	return finallist, key
 
 def normalprocess(auto,text,finallist):
@@ -402,8 +404,8 @@ def stringequality(string):
 			for k in range(1,len(string)+2-i):
 				if string[j-1:j+i-1] == string[k-1:k+i-1]:
 					listoftup.append((i,j,k))
-	#print(listoftup)
-	#print(len(listoftup))
+	print(listoftup)
+	print(len(listoftup))
 
 	autostring, deststring, shortcut = createauto(listoftup[0],string,['x','y'])	
 
@@ -411,7 +413,7 @@ def stringequality(string):
 		autostring,deststring,shortcut = combinationauto(autostring,deststring,shortcut,listoftup[i],string,['x','y'])
 		#sg.printgraph(autostring,str(i))
 
-	#sg.printgraph(autostring,'final')
+	sg.printgraph(autostring,'final')
 
 
 '''

@@ -155,7 +155,18 @@ def projectionv1(auto,projections):
 					newedge = (edge[0],'[epsi]')
 					auto.transition[edge[0]].append(newedge)
 
-
+def foundepsilon(auto,finalgraph,currentnode,edgenode,text,letterpos,nexttodo,extratodo,finallist):
+	for edge in auto.transition[edgenode]:
+		if edge[1] == text[letterpos] or edge[1] == '[sum]':
+			if letterpos == len(text)-1:
+				if edge[0] == auto.end:
+					finalgraph[letterpos][currentnode].add(edge[0])		
+			else:
+				nexttodo.add(edge[0])
+				finalgraph[letterpos][currentnode].add(edge[0])
+			extratodo.add(edge[0])
+		elif edge[1] == '[epsi]' and finallist[edgenode] == finallist[edge[0]]:
+			foundepsilon(auto,finalgraph,currentnode,edge[0],text,letterpos,nexttodo,extratodo,finallist)
 
 def generateAg(auto,text,finallist):
 	finalgraph = {}
@@ -165,14 +176,24 @@ def generateAg(auto,text,finallist):
 
 	#To obtain all possible paths, we iterate the edges stored in auto.
 	#First, we need to determine initial valid node to start
-	todonodes = set([])
-	tempnode = []
+	tochecklist = set([str(auto.start)])
+	nxsetnodes = set([])
+	seenlist = set([str(auto.start)])
+	while tochecklist:
+		item = tochecklist.pop()
+		seenlist.add(item)
+		for tup in auto.transition[item]:
+			if tup[1] == text[0]:
+				nxsetnodes.add(key)
+				finalgraph[-1]['0'].add(key)
+			if tup[1] == '[epsi]' and ({str(tup[1])} not in seenlist):
+				tochecklist.add(str(tup[0]))
+
 	for key, edges in auto.transition.items():
 		extra = set([])
 		for edge in edges:
 			if edge[1] == text[0] or edge[1] == '[sum]':
-				todonodes.add(key)
-				finalgraph[-1]['0'].add(key)
+				
 			elif edge[1] == '[epsi]' and finallist[key] != finallist[edge[0]]:
 				extra.add(edge[0])
 		print ('extra',extra)
@@ -184,109 +205,123 @@ def generateAg(auto,text,finallist):
 					finalgraph[-1]['0'].add(key)
 				elif edge[1] == '[epsi]' and finallist[exnode] != finallist[edge[0]]:
 					extra.add(edge[0])
+	print('finalgraph',finalgraph)
+	print('todonodes \n',todonodes)
 
-	print('todonodes',todonodes)
-	letterpos = 0
-	while letterpos != len(text):
+	#time.sleep(4)
+	for i in range(len(text)):
 		nexttodo = set([])
 		while todonodes:
 			extratodo = set([])
 			currentnode = todonodes.pop()
+
 			for edge in auto.transition[currentnode]:
-				if edge[1] == text[letterpos] or edge[1] == '[sum]':
-					ifnotlv3(finalgraph, letterpos, currentnode)
-					nexttodo.add(edge[0])
-					finalgraph[letterpos][currentnode].add(edge[0])
+				if edge[1] == text[i] or edge[1] == '[sum]':
+					ifnotlv3(finalgraph, i, currentnode)
+					if i == len(text)-1:
+						if edge[0] == auto.end:
+							finalgraph[i][currentnode].add(edge[0])	
+					else:
+						nexttodo.add(edge[0])
+						finalgraph[i][currentnode].add(edge[0])
 					extratodo.add(edge[0])
 				elif edge[1] == '[epsi]' and finallist[currentnode] == finallist[edge[0]]:
-					extratodo.add(edge[0])
+					ifnotlv3(finalgraph, i, currentnode)
+					foundepsilon(auto,finalgraph,currentnode,edge[0],text,i,nexttodo,extratodo,finallist)
 
 			while extratodo:
 				extranode = extratodo.pop()
 				for edge in auto.transition[extranode]:
 					if edge[1] == '[epsi]' and finallist[extranode] != finallist[edge[0]]:
-						nexttodo.add(edge[0])
-						finalgraph[letterpos][currentnode].add(edge[0])
+						ifnotlv3(finalgraph, i, currentnode)
+						if i == len(text)-1:
+							if edge[0] == auto.end:
+								finalgraph[i][currentnode].add(edge[0])		
+						else:
+							nexttodo.add(edge[0])
+							finalgraph[i][currentnode].add(edge[0])
 						extratodo.add(edge[0])
 					elif edge[1] == '[epsi]' and finallist[currentnode] == finallist[edge[0]]:
 						extratodo.add(edge[0])
+		
 		print('todonodes',todonodes)
 		print('nexttodo',nexttodo)
 		todonodes = todonodes | nexttodo
 		print('todonodes',todonodes)
-		letterpos += 1
-		print ('letterpos',letterpos)
-	print(finalgraph)
+
+
+		print('finalgraph \n', finalgraph)
+		#time.sleep(4)
 	
 	tokeepnodes = set([str(auto.end)])
 	print('tokeepnodes',tokeepnodes)
 	for i in range(len(text)-1,-2,-1):
 		print('i',i)
-		updatetokeep = set([])	
-		
-		for key, edges in finalgraph[i].items():
-			print('key',key)
-			print('edges',edges)
-			print(tokeepnodes & edges)
-			for item in edges:
-				print(tokeepnodes & {item})
-				if tokeepnodes & {item}:
-				updatetokeep.add(key)
-			else:
+		updatetokeep = set([])
+		list0 = list(finalgraph[i].keys())
+		for key in list0:
+			list1 = list(finalgraph[i][key])
+			for edges in list1:
+				print('edges',edges)
+				for item in edges:
+					if {item} & tokeepnodes:
+						updatetokeep.add(key)
+					else:
+						finalgraph[i][key].remove(item)
+			
+			if len(finalgraph[i][key]) == 0:
 				del finalgraph[i][key]
-		tokeepnodes = updatetokeep
+
+		tokeepnodes = set([])
+		tokeepnodes = tokeepnodes | updatetokeep
+
+	print('finalgraph \n', finalgraph)
+	time.sleep(10)
 
 	return finalgraph
+
 
 def finalauto(graph,finallist,last):
 	print('graph',graph)
 	finalgraph = {}
 	final = -1
 	for positions, nodes in graph.items():
-		if positions == -1:
-			start = 'q0'
-		else:
-			start = (positions, nodes)
+		for begining, ending in nodes.items():
+			print('positions',positions)
+			print('nodes',nodes)
+			if positions == -1:
+				start = 'q0'
+			else:
+				start = (positions, begining)
 
-		ifnotlv1(finalgraph,str(start))
-		for edge in nodes:
-			value = finallist[edge]
-			end = (positions+1, edge)
-			finalgraph[str(start)].append((end,value))
-		if positions > final:
-			final = positions
+			print('start',start)
 
-	endnode = (final,last)
+			ifnotlv1(finalgraph,str(start))
+			for edge in ending:
+				value = finallist[edge]
+				end = (positions+1, edge)
+				tup = (end,value)
+				finalgraph[str(start)].append(tup)
+
+			if positions > final:
+				final = positions
+
+		print('autotrani',positions,finalgraph)
+		#time.sleep(5)	
+
+	endnode = (final+1,str(last))
 	autograph = sc2.automata(0,0,0)
 	autograph.reset()
 	autograph.start = 'q0'
 	autograph.end = str(endnode)
 	autograph.transition = finalgraph
 	print('autotran',autograph.transition)
-	time.sleep(10)
+	#time.sleep(10)
 
 	return autograph
 
 
-def calcresults(finalgraph,totallength,finallist):
-	stacks = {}
-	availableletters = {}
-	letterofedges = {}
-	
-	for i in range(-1,totallength):
-		stacks[i] = set([])
-		availableletters[i] = []
-		letterofedges[i] = set([])		
 
-	stacks[-1].add('0')
-	k = minString(-1,stacks,finalgraph,totallength,finallist,availableletters,letterofedges)
-	
-	listofoutputs = []
-	while k != []:
-		listofoutputs.append(str(k))
-		k = nextString(k,stacks,finalgraph,totallength,finallist,availableletters,letterofedges)
-	
-	return listofoutputs
 
 def printresults(listofoutputs):
 	print ('\n results')
@@ -307,47 +342,101 @@ def projectionv2(finallist,key,listofprojections):
 
 
 
-def minstring(integer,stacks,finalgraph,totallength,finallist,availableletters,letterofedges):
+def minString(integer,stacks,finalgraph,totallength,finallist,availableletters,letterofedges,template):
 	finalstring = []
-	copying = availableletters[integer][0]	
-
-	for i in range(integer, totallength-2):
+	for i in range(integer, totallength-1):
 		for availablenode in stacks[i]:
-			for endnode in finalgraph[availablenode]:
-				ifnotlv4(letterofedges[i], str(finallist[endnode]))
-				letterofedges[i][str(finallist[endnode])].add(endnode)
+			if str(availablenode) in finalgraph[i]:
+				for item in finalgraph[i][availablenode]:
+					if not finallist[item] in availableletters[i+1]:
+						availableletters[i+1].append( finallist[item] )
+					if str(finallist[item]) not in letterofedges[i+1]:
+						letterofedges[i+1][str(finallist[item])] = set([])	
+					letterofedges[i+1][str(finallist[item])].add(item)
+		
+		for j in range(len(availableletters[i+1][0])-1,-1,-1):
+			availableletters[i+1].sort(key=lambda tup: tup[j], reverse=1)
 
-				if finallist[endnode] not in availableletters[i]:
-					availableletters[i].append( finallist[endnode] )
+		finalstring.append(availableletters[i+1][0])
+		
+		stacks[i+1] = stacks[i+1] | letterofedges[i+1][str(availableletters[i+1][0])]	
+		
+		#del availableletters[i][0]	
 
-		for j in range(len(availableletters[i][0])-1,-1,-1):
-			availableletters[i].sort(key=lambda tup: tup[j])
+	if template == ['0']:
+		copying = copy.deepcopy(availableletters[integer+1][0])
 
-		finalstring.append(availableletters[i][0])
+		for k in range(len(copying)):
+			copying[k] = 'c'
 
-		stacks[i+1] = stacks[i+1] | letterofedges[str(availableletters[i][0])]	
-		del availableletters[i][0]	
+		finalstring.append(copying)	
 
-	for k in range(len(copying)):
-		copying[k] = 'c'
+		return copying, finalstring
+	else:
+		finalstring.append(template)	
 
-	finalstring.append(copying)	
+		return finalstring
 
-	return finalstring
-
-def nextString(currentstring,stacks,finalgraph,totallength,finallist,availableletters,letterofedges):
-	for i in range(totallength-1,-2,-1):
-		availableletter[i].remove(currentstring[i])
-
-		if availableletters[i]:
-			finalstring = currentstring[i-1]
+def nextString(currentstring,stacks,finalgraph,totallength,finallist,availableletters,letterofedges,template):
+	print('\n\n\n\n')
+	print('currentstring',currentstring)
+	for i in range(totallength-1,-1,-1):
+		print('i',i)	
+		print('currentstringi',currentstring[i])
+		print('availableletters',availableletters)
+		if len(availableletters[i]) != 1:
+			availableletters[i].remove( currentstring[i] )
+			print('availableletters2',availableletters)
+			finalstring = currentstring[0:i]
+			print('finalstringbe',finalstring)
 			finalstring.append(availableletters[i][0])
-			lastpart = minstring(i+1,stacks,finalgraph,totallength,finallist,availableletters,letterofedges)
-			finalstring.append(lastpart)
+			print('finalstringaf',finalstring)
+			print('letterofedges',letterofedges[i])
+			stacks[i] = letterofedges[i][str(availableletters[i][0])]
+			print('stacks',stacks)
+	
+			lastpart = minString(i,stacks,finalgraph,totallength,finallist,availableletters,letterofedges,template)
+			finalstring.extend(lastpart)
+			print('finalstringend',finalstring)
 			return finalstring
 
 		else:
-			stacks[i+1] = set([])
-			letterofedges[i] = set([])
+			stacks[i] = set([])
+			letterofedges[i] = {}
+			availableletters[i] = []
+			print('availableletters',availableletters[i])
+	return []
 
+def calcresults(finalgraph,totallength,finallist):
+	stacks = {}
+	availableletters = {}
+	letterofedges = {}
+	stacks[-1] = {'0'}
 
+	for i in range(0,totallength+1):
+		stacks[i] = set([])
+		availableletters[i] = []
+		letterofedges[i] = {}		
+
+	template, k = minString(-1,stacks,finalgraph,totallength,finallist,availableletters,letterofedges,['0'])
+	print('template',template,'k',k)
+	#time.sleep(4)
+	listofoutputs = []
+	print('\n\n\n')
+	print('finalgraph',finalgraph)
+	print('stacks',stacks)
+	print('availableletters',availableletters)
+	print('letterofedges',letterofedges)
+
+	while k != []:
+		listofoutputs.append(str(k))
+		k = nextString(k,stacks,finalgraph,totallength,finallist,availableletters,letterofedges,template)
+		print('\n\n\n')
+		print('finalgraph',finalgraph)
+		print('stacks',stacks)
+		print('availableletters',availableletters)
+		print('letterofedges',letterofedges)
+		print('k',k)
+	
+	
+	return listofoutputs

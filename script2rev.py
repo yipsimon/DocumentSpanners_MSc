@@ -6,7 +6,7 @@ from arpeggio import ParserPython
 import sys, time, re
 #dot -Tpng -O .dot
 
-def alphabet():	return _(r'[a-zA-Z0-9]')
+def alphabet():		return _(r'[a-zA-Z0-9]')
 def varconfig(): 	return "[", _(r'[a-zA-Z0-9]') ,":", expression,"]"
 def terminals():	return [alphabet, varconfig, ("(", expression, ")")]
 def plus(): 		return terminals,"+"
