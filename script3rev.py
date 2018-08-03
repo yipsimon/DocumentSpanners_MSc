@@ -148,6 +148,19 @@ def joincreate(auto1,auto2,key1,key2):
 
 	return auto, keytemp
 
+
+def addepsilon(auto,finallist):
+	for startnode, tuples in auto.transition.items():
+		for tup in tuples:
+			if tup[1] == '[epsi]' and finallist[startnode] != finallist[tup[0]]:
+				checkfunction(auto,finallist,startnode,tup[0])
+
+def checkfunction(auto,finallist,start,search):
+	for tup in auto.transition[search]:
+		if tup[1] == '[epsi]' and finallist[search] != finallist[tup[0]] and tup[0] != start:
+			auto.addedge(start,tup[0],'[epsi]')
+			checkfunction(auto,finallist,start,tup[0])
+
 def joinver1(auto1,auto2):	
 	finallist1, key1, varedges1 = sc1.funchk(auto1)
 	finallist2, key2, varedges2 = sc1.funchk(auto2)
@@ -155,6 +168,9 @@ def joinver1(auto1,auto2):
 	print('finallist2',finallist2)
 	sc1.csymtonull(auto1,varedges1)
 	sc1.csymtonull(auto2,varedges2)
+	addepsilon(auto1,finallist1)
+	addepsilon(auto2,finallist2)
+
 
 	auto, keytemp = joincreate(auto1,auto2,key1,key2)
 

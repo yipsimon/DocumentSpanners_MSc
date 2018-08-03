@@ -43,6 +43,16 @@ sc3.printresults(data)
 
 auto2, varconfiglist, key = sc3.joinver1(automata,auto1)
 
+
+
+string1 = 'a'*20
+print(string1)
+print(sys.getsizeof(string1))
+print(sys.getsizeof([]*80))
+auto1 = sc3.stringequality(string1)
+print(sys.getsizeof(auto1))
+'''
+
 string = 'aaa'
 automata1 = sc2.automata(0,0,0)
 automata2 = sc2.automata(0,0,0)
@@ -75,12 +85,9 @@ print('\nkey\n')
 print(key)
 automata.printauto()
 sg.printgraph(automata,'g2')
-'''
-string1 = 'a'*20
-print(string1)
-print(sys.getsizeof(string1))
-print(sys.getsizeof([]*80))
-auto1 = sc3.stringequality(string1)
-print(sys.getsizeof(auto1))
+data = sc3.normalprocess(automata,string,varconfiglist)
+
+sc3.printresults(data)
+
 print("--- %s seconds ---" % (time.time() - start_time))
 objgraph.show_most_common_types()

@@ -161,7 +161,7 @@ def foundepsilon(auto,finalgraph,currentnode,edgenode,text,letterpos,extratodo,f
 		if edge[1] == text[letterpos] or edge[1] == '[sum]':
 			print('foundmatch2')
 			if letterpos == len(text)-1:
-				if edge[0] == auto.end:
+				if edge[0] == str(auto.end):
 					finalgraph[letterpos][currentnode].add(edge[0])		
 			else:
 				finalgraph[letterpos][currentnode].add(edge[0])
@@ -205,13 +205,15 @@ def generateAg(auto,text,finallist):
 				print('edge',edge)
 				if edge[1] == text[i] or edge[1] == '[sum]':
 					print('foundmatch')
+					
 					if i == len(text)-1:
-						if edge[0] == auto.end:
+						if edge[0] == str(auto.end):
 							ifnotlv3(finalgraph, i, currentnode)
 							finalgraph[i][currentnode].add(edge[0])	
 					else:
 						ifnotlv3(finalgraph, i, currentnode)
 						finalgraph[i][currentnode].add(edge[0])
+
 					extratodo.add(edge[0])
 				elif edge[1] == '[epsi]' and finallist[currentnode] == finallist[edge[0]]:
 					ifnotlv3(finalgraph, i, currentnode)
@@ -230,7 +232,7 @@ def generateAg(auto,text,finallist):
 					if edge[1] == '[epsi]' and finallist[extranode] != finallist[edge[0]]:
 						print('match3')
 						if i == len(text)-1:
-							if edge[0] == auto.end:
+							if edge[0] == str(auto.end):
 								ifnotlv3(finalgraph, i, currentnode)			
 								finalgraph[i][currentnode].add(edge[0])		
 						else:
@@ -258,7 +260,7 @@ def generateAg(auto,text,finallist):
 		print('nxsetnodes',nxsetnodes)
 		print('nexttodo',nexttodo)
 		nxsetnodes = nxsetnodes | nexttodo
-		print('nxsetnodes \n',nxsetnodes)
+		print('nxsetnodes \n\n\n\n',nxsetnodes)
 
 
 		
