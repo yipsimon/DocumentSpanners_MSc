@@ -47,6 +47,49 @@ def readauto(fname):
     #auto.tostr()
     return auto
 
+def csymtonulllong(auto):
+	ext = ['+','-']
+	for key, edges in auto.transition.items():
+		if key == str(0):
+			print('edges',edges)
+		copy1 = copy.deepcopy(edges)
+		for edge in edges:
+			if key == str(0):
+				print('edge',edge)
+			if edge[1][-1] in ext:
+				print('true')
+				copy1.remove(edge)
+				newedge = (edge[0],'[epsi]')
+				copy1.append(newedge)
+		auto.transition[key] = copy1
+
+def getvarconfig(auto,openlist,closelist):
+	finallist = {}
+	key = {}	
+	template = list()
+	
+	for i in range(len(auto.varstates)):
+		key[str(auto.varstates[i])] = i
+		template.append('w')
+
+	#Creating Empty Spaces for dictionaries
+	for item in auto.states:
+		finallist[str(item)] = list()
+		finallist[str(item)].extend(template)
+
+	for node in auto.states:
+		print('node',node)
+		opp = openlist[node]
+		cpp = closelist[node]
+		for config in auto.varstates:
+			if opp & {config} and cpp & {config}:
+				finallist[node][key[config]] = 'c'
+			elif opp & {config} and not cpp & {config}:
+				finallist[node][key[config]] = 'o'
+
+	return finallist, key
+
+
 #Functionality checks
 def funchk(auto):
 	openlist = {}
@@ -137,7 +180,8 @@ def funchk(auto):
 				finallist[node][key[config]] = 'o'
 
 
-	return finallist, key, varedges
+	#return finallist, key, varedges
+	return openlist, closelist
 
 def csymtonull(auto,varedges):
 	for edge in varedges:
@@ -226,7 +270,7 @@ def generateAg(auto,text,finallist):
 				extranode = extratodo.pop()
 				print('extranode',extranode)
 				#seenlist.add(extranode)
-				print('extranode trans',auto.transition[extranode])
+				#print('extranode trans',auto.transition[extranode])
 				for edge in auto.transition[extranode]:
 					print('edge',edge)
 					if edge[1] == '[epsi]' and finallist[extranode] != finallist[edge[0]]:
@@ -327,7 +371,7 @@ def finalauto(graph,finallist,last):
 			if positions > final:
 				final = positions
 
-		print('autotrani',positions,finalgraph)
+		#print('autotrani',positions,finalgraph)
 		#time.sleep(5)	
 
 	endnode = (final+1,str(last))
@@ -336,7 +380,7 @@ def finalauto(graph,finallist,last):
 	autograph.start = 'q0'
 	autograph.end = str(endnode)
 	autograph.transition = finalgraph
-	print('autotran',autograph.transition)
+	#print('autotran',autograph.transition)
 	#time.sleep(10)
 
 	return autograph

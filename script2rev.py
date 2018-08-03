@@ -46,6 +46,8 @@ class automata():
 		for item in self.states:
 			temp2.append(str(item))
 		self.states = temp2
+		self.start = str(self.start)
+		self.end = str(self.end)
 
 
 		

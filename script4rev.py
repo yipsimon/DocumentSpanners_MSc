@@ -9,15 +9,10 @@ start_time = time.time()
 
 '''
 
-string = 'aaa'
 reg1 = '(a*),[x:(a*)],(a*)'
 reg2 = '(a*),[x:(a*)],(a*)'
-automata1 = sc3.convertregex(reg)
+automata1 = sc3.convertregex(reg1)
 automata2 = sc3.convertregex(reg2)
-
-
-
-
 
 
 automata = sc2.automata(0,0,0)
@@ -51,7 +46,61 @@ print(sys.getsizeof(string1))
 print(sys.getsizeof([]*80))
 auto1 = sc3.stringequality(string1)
 print(sys.getsizeof(auto1))
-'''
+
+
+
+
+#varconfiglist, key = sc3.functionalcheck(automata)
+print('\nvarconfiglist\n')
+print(varconfiglist)
+print('\nkey\n')
+print(key)
+automata.printauto()
+sg.printgraph(automata,'g1')
+
+data = sc3.normalprocess(automata,string,varconfiglist)
+
+sc3.printresults(data)
+
+string = 'aaa'
+automata1 = sc2.automata(0,0,0)
+automata2 = sc2.automata(0,0,0)
+automata1.reset()
+automata2.reset()
+automata1.states = automata1.states | {'0','1','2'}
+automata2.states = automata2.states | {'A','B','C'}
+automata1.varstates = ['x']
+automata2.varstates = ['x']
+automata1.transition['0'] = [('0','a'),('1','x+')]
+automata1.transition['1'] = [('1','a'),('2','x-')]
+automata1.transition['2'] = [('2','a')]
+automata2.transition['A'] = [('A','a'),('B','x+')]
+automata2.transition['B'] = [('B','a'),('C','x-')]
+automata2.transition['C'] = [('C','a')]
+automata1.start = '0'
+automata1.end = '2'
+automata2.start = 'A'
+automata2.end = 'C'
+
+
+automata = sc2.automata(0,0,0)
+automata.reset()
+
+automata, varconfiglist, key = sc3.joinver1(automata1,automata2)
+for key, edges in automata.transition.items():
+	print('key: ', key)
+	for edge in edges:
+		print(edge)
+	print('\n')
+
+sg.printgraph(automata,'g1')
+
+data = sc3.normalprocess(automata,string,varconfiglist)
+
+sc3.printresults(data)
+
+string1 = 'a'*3
+auto1 = sc3.stringequality(string1)
 
 string = 'aaa'
 automata1 = sc2.automata(0,0,0)
@@ -87,19 +136,43 @@ for key, edges in automata.transition.items():
 		print(edge)
 	print('\n')
 
-
-
-#varconfiglist, key = sc3.functionalcheck(automata)
-print('\nvarconfiglist\n')
-print(varconfiglist)
-print('\nkey\n')
-print(key)
-automata.printauto()
 sg.printgraph(automata,'g1')
 
 data = sc3.normalprocess(automata,string,varconfiglist)
 
 sc3.printresults(data)
 
+
+'''
+string = 'aaa'
+automata1 = sc2.automata(0,0,0)
+automata1.reset()
+automata1.states = automata1.states | {'0','1','2','3','4'}
+automata1.varstates = ['x','y']
+automata1.transition['0'] = [('0','a'),('1','x+')]
+automata1.transition['1'] = [('1','a'),('2','y+')]
+automata1.transition['2'] = [('2','a'),('3','x-')]
+automata1.transition['3'] = [('3','a'),('4','y-')]
+automata1.transition['4'] = [('4','a')]
+automata1.start = '0'
+automata1.end = '4'
+
+automata2 = sc3.stringequality(string)
+
+automata = sc2.automata(0,0,0)
+automata.reset()
+
+automata, varconfiglist, key = sc3.joinver1(automata1,automata2)
+for key, edges in automata.transition.items():
+	print('key: ', key)
+	for edge in edges:
+		print(edge)
+	print('\n')
+
+sg.printgraph(automata,'g1')
+
+data = sc3.normalprocess(automata,string,varconfiglist)
+
+sc3.printresults(data)
 print("--- %s seconds ---" % (time.time() - start_time))
 objgraph.show_most_common_types()
