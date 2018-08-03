@@ -152,14 +152,52 @@ def joincreate(auto1,auto2,key1,key2):
 def addepsilon(auto,finallist):
 	for startnode, tuples in auto.transition.items():
 		for tup in tuples:
-			if tup[1] == '[epsi]' and finallist[startnode] != finallist[tup[0]]:
+			if tup[1] == '[epsi]':
 				checkfunction(auto,finallist,startnode,tup[0])
 
 def checkfunction(auto,finallist,start,search):
 	for tup in auto.transition[search]:
-		if tup[1] == '[epsi]' and finallist[search] != finallist[tup[0]] and tup[0] != start:
-			auto.addedge(start,tup[0],'[epsi]')
+		if tup[1] == '[epsi]' and tup[0] != start:
+			if (tup[0],'[epsi]') not in auto.transition[str(start)]:
+				auto.addedge(start,tup[0],'[epsi]')
 			checkfunction(auto,finallist,start,tup[0])
+
+def checklegal(auto,keytemp,finallist1,finallist2,seen,dest,template,currentnode,finallist,endvalue,todo,done,key3):
+	fail = 0
+	for variable in auto.varstates:
+		if keytemp[variable][0] == -1 or keytemp[variable][1] == -1:
+			fail = 0
+		elif finallist1[dest[0]][keytemp[variable][0]] != finallist2[dest[1]][keytemp[variable][1]]:
+			fail = 1
+			break
+
+	if fail == 0 and (not seen & {dest}):
+		seen.add(dest)
+		finallist[str(dest)] = []
+		finallist[str(dest)].extend(template)
+		isnotlv5(auto.transition,str(currentnode))
+		#isnotlv5(finallist,dest)
+		print('keytemp',keytemp)
+		for variable in auto.varstates:
+			tup = keytemp[variable]
+			print('tup',tup)
+			print ('dest',dest)
+			print('finallist',finallist)
+			if tup[0] != -1 and tup[1] == -1:
+				#finallist[str(dest)][0] = finallist1[str(dest[0])][tup[0]]
+				finallist[str(dest)][key3[variable]] = finallist1[str(dest[0])][tup[0]]
+			elif tup[1] != -1 and tup[0] == -1:
+				#finallist[str(dest)][1] = finallist2[str(dest[1])][tup[1]]
+				finallist[str(dest)][key3[variable]] = finallist2[str(dest[1])][tup[1]]
+			else:
+				finallist[str(dest)][key3[variable]] = finallist1[str(dest[0])][tup[0]]
+				#finallist[str(dest)][0] = finallist1[str(dest[0])][tup[0]]
+				#finallist[str(dest)][1] = finallist2[str(dest[1])][tup[1]]
+		end = (str(dest), endvalue)
+		auto.transition[str(currentnode)].append(end)
+		if not done & {dest}:
+			todo.add(dest)
+			
 
 def joinver1(auto1,auto2):	
 	finallist1, key1, varedges1 = sc1.funchk(auto1)
@@ -171,7 +209,15 @@ def joinver1(auto1,auto2):
 	addepsilon(auto1,finallist1)
 	addepsilon(auto2,finallist2)
 
+	for key, edges in auto1.transition.items():
+		print('key: ', key)
+		for edge in edges:
+			print(edge)
+		print('\n')
 
+	sg.printgraph(auto1,'test1')
+
+	
 	auto, keytemp = joincreate(auto1,auto2,key1,key2)
 
 	key3 = {}
@@ -193,77 +239,19 @@ def joinver1(auto1,auto2):
 		print('\n')
 		seen = set([])
 		for edge1 in auto1.transition[currentnode[0]]:
-			print('edge1',edge1)
-			fail = 0
-			for variable in auto.varstates:
-				if keytemp[variable][0] == -1 or keytemp[variable][1] == -1:
-					fail = 0
-				elif finallist1[edge1[0]][keytemp[variable][0]] != finallist2[currentnode[1]][keytemp[variable][1]]:
-					fail = 1
-					break
-			dest = (edge1[0],currentnode[1])
-			if fail == 0 and (not seen & {dest}):
-				seen.add(dest)
-				finallist[str(dest)] = []
-				finallist[str(dest)].extend(template)
-				isnotlv5(auto.transition,str(currentnode))
-				#isnotlv5(finallist,dest)
-				print('keytemp',keytemp)
-				for variable in auto.varstates:
-					tup = keytemp[variable]
-					print('tup',tup)
-					print ('dest',dest)
-					print('finallist',finallist)
-					if tup[0] != -1 and tup[1] == -1:
-						#finallist[str(dest)][0] = finallist1[str(dest[0])][tup[0]]
-						finallist[str(dest)][key3[variable]] = finallist1[str(dest[0])][tup[0]]
-					elif tup[1] != -1 and tup[0] == -1:
-						#finallist[str(dest)][1] = finallist2[str(dest[1])][tup[1]]
-						finallist[str(dest)][key3[variable]] = finallist2[str(dest[1])][tup[1]]
-					else:
-						finallist[str(dest)][key3[variable]] = finallist1[str(dest[0])][tup[0]]
-						#finallist[str(dest)][0] = finallist1[str(dest[0])][tup[0]]
-						#finallist[str(dest)][1] = finallist2[str(dest[1])][tup[1]]
+			for edge2 in auto2.transition[currentnode[1]]:
+				if edge1[1] == edge2[1]:
+					dest = (edge1[0],edge2[0])
+					checklegal(auto,keytemp,finallist1,finallist2,seen,dest,template,currentnode,finallist,edge1[1],todo,done,key3)
 
-				end = (str(dest), edge1[1])
-				auto.transition[str(currentnode)].append(end)
-				if not done & {dest}:
-					todo.add(dest)
-					
-		print('final',finallist)
-		for edge2 in auto2.transition[currentnode[1]]:
-			print('edge2',edge2)
-			fail = 0
-			for variable in auto.varstates:
-				if keytemp[variable][0] == -1 or keytemp[variable][1] == -1:
-					fail = 0
-				elif finallist1[currentnode[0]][keytemp[variable][0]] != finallist2[edge2[0]][keytemp[variable][1]]:
-					fail = 1
-					break
-			dest = (currentnode[0],edge2[0])
-			if fail == 0 and (not seen & {dest}):
-				seen.add(dest)
-				finallist[str(dest)] = []
-				finallist[str(dest)].extend(template)
-				isnotlv5(auto.transition,str(currentnode))
-				#isnotlv5(finallist,dest)
-				for variable in auto.varstates:
-					tup = keytemp[variable]
-					if tup[0] != -1 and tup[1] == -1:
-						finallist[str(dest)][0] = finallist1[str(dest[0])][tup[0]]
-					elif tup[1] != -1 and tup[0] == -1:
-						finallist[str(dest)][1] = finallist2[str(dest[1])][tup[1]]
-					else:
-						finallist[str(dest)][0] = finallist1[str(dest[0])][tup[0]]
-						finallist[str(dest)][1] = finallist2[str(dest[1])][tup[1]]
+			if edge1[1] == '[epsi]':
+				dest = (edge1[0],currentnode[1])
+				checklegal(auto,keytemp,finallist1,finallist2,seen,dest,template,currentnode,finallist,edge1[1],todo,done,key3)
 
-				end = (str(dest), edge2[1])
-				auto.transition[str(currentnode)].append(end)
-				if not done & {dest}:
-					todo.add(dest)
-					
-
-		
+		for edge3 in auto2.transition[currentnode[1]]:
+			if edge3[1] == '[epsi]':
+				dest = (currentnode[0],edge3[0])
+				checklegal(auto,keytemp,finallist1,finallist2,seen,dest,template,currentnode,finallist,edge3[1],todo,done,key3)		
 
 	return auto, finallist, key3
 
