@@ -142,9 +142,70 @@ data = sc3.normalprocess(automata,string,varconfiglist)
 
 sc3.printresults(data)
 
-
-'''
 string = 'aaa'
+
+automata1 = sc2.automata(0,0,0)
+automata2 = sc2.automata(0,0,0)
+automata1.reset()
+automata2.reset()
+automata1.states = automata1.states | {'0','1','2','3','4'}
+automata2.states = automata2.states | {'A','B','C','D',"E"}
+automata1.varstates = ['x','y']
+automata2.varstates = ['x','y']
+automata1.transition['0'] = [('0','a'),('1','x+')]
+automata1.transition['1'] = [('1','a'),('2','y+')]
+automata1.transition['2'] = [('2','a'),('3','x-')]
+automata1.transition['3'] = [('3','a'),('4','y-')]
+automata1.transition['4'] = [('4','a')]
+automata2.transition['A'] = [('A','a'),('B','y+')]
+automata2.transition['B'] = [('B','a'),('C','x+')]
+automata2.transition['C'] = [('C','a'),('D','y-')]
+automata2.transition['D'] = [('D','a'),('E','x-')]
+automata2.transition['E'] = [('E','a')]
+automata1.start = '0'
+automata1.end = '4'
+automata2.start = 'A'
+automata2.end = 'E'
+
+automata = sc2.automata(0,0,0)
+automata.reset()
+
+automata, varconfiglist, key = sc3.joinver1(automata1,automata2)
+for key, edges in automata.transition.items():
+	print('key: ', key)
+	for edge in edges:
+		print(edge)
+	print('\n')
+
+sg.printgraph(automata,'g1')
+
+automata3 = sc2.automata(0,0,0)
+automata3.reset()
+automata3.states = automata1.states | {'0','1','2','3','4'}
+automata3.varstates = ['x','y']
+automata3.transition['0'] = [('0','a'),('1','x+')]
+automata3.transition['1'] = [('1','a'),('2','y+')]
+automata3.transition['2'] = [('2','a'),('3','x-')]
+automata3.transition['3'] = [('3','a'),('4','y-')]
+automata3.transition['4'] = [('4','a')]
+automata3.start = '0'
+automata3.end = '4'
+
+
+automata0 = sc2.automata(0,0,0)
+automata0.reset()
+
+automata0, varconfiglist0, key0 = sc3.joinver1(automata,automata3)
+for key, edges in automata0.transition.items():
+	print('key: ', key)
+	for edge in edges:
+		print(edge)
+	print('\n')
+
+sg.printgraph(automata0,'g2')
+'''
+
+string = 'a'*3
 automata1 = sc2.automata(0,0,0)
 automata1.reset()
 automata1.states = automata1.states | {'0','1','2','3','4'}
@@ -174,5 +235,7 @@ sg.printgraph(automata,'g1')
 data = sc3.normalprocess(automata,string,varconfiglist)
 
 sc3.printresults(data)
+
+
 print("--- %s seconds ---" % (time.time() - start_time))
 objgraph.show_most_common_types()

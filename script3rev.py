@@ -167,7 +167,7 @@ def checklegal(auto,keytemp,finallist1,finallist2,seen,dest,template,currentnode
 	for variable in auto.varstates:
 		if keytemp[variable][0] == -1 or keytemp[variable][1] == -1:
 			fail = 0
-		elif finallist1[dest[0]][keytemp[variable][0]] != finallist2[dest[1]][keytemp[variable][1]]:
+		elif finallist1[str(dest[0])][keytemp[variable][0]] != finallist2[str(dest[1])][keytemp[variable][1]]:
 			fail = 1
 			break
 
@@ -244,8 +244,8 @@ def joinver1(auto1,auto2):
 		print('currentnode\n',currentnode)
 		print('\n')
 		seen = set([])
-		for edge1 in auto1.transition[currentnode[0]]:
-			for edge2 in auto2.transition[currentnode[1]]:
+		for edge1 in auto1.transition[str(currentnode[0])]:
+			for edge2 in auto2.transition[str(currentnode[1])]:
 				if edge1[1] == edge2[1]:
 					dest = (edge1[0],edge2[0])
 					checklegal(auto,keytemp,finallist1,finallist2,seen,dest,template,currentnode,finallist,edge1[1],todo,done,key3)
@@ -254,7 +254,7 @@ def joinver1(auto1,auto2):
 				dest = (edge1[0],currentnode[1])
 				checklegal(auto,keytemp,finallist1,finallist2,seen,dest,template,currentnode,finallist,edge1[1],todo,done,key3)
 
-		for edge3 in auto2.transition[currentnode[1]]:
+		for edge3 in auto2.transition[str(currentnode[1])]:
 			if edge3[1] == '[epsi]':
 				dest = (currentnode[0],edge3[0])
 				checklegal(auto,keytemp,finallist1,finallist2,seen,dest,template,currentnode,finallist,edge3[1],todo,done,key3)		
