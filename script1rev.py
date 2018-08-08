@@ -50,14 +50,9 @@ def readauto(fname):
 def csymtonulllong(auto):
 	ext = ['+','-']
 	for key, edges in auto.transition.items():
-		if key == str(0):
-			print('edges',edges)
 		copy1 = copy.deepcopy(edges)
 		for edge in edges:
-			if key == str(0):
-				print('edge',edge)
 			if edge[1][-1] in ext:
-				print('true')
 				copy1.remove(edge)
 				newedge = (edge[0],'[epsi]')
 				copy1.append(newedge)
@@ -89,7 +84,6 @@ def getvarconfig(auto,openlist,closelist):
 
 	return finallist, key
 
-
 #Functionality checks
 def funchk(auto):
 	openlist = {}
@@ -111,7 +105,7 @@ def funchk(auto):
 
 	seenlist = {str(auto.start)}
 	todolist = {str(auto.start)}
-	varedges = []	#To store edges with varconfigurations
+	#varedges = []	#To store edges with varconfigurations
 	
 	while todolist:
 		origin = todolist.pop()
@@ -135,8 +129,8 @@ def funchk(auto):
 					todolist.add(dest)
 					openlist[dest] = (openlist[origin] | {letter})
 					closelist[dest] = closelist[origin]
-					tuptemp = (origin,item)
-					varedges.append(tuptemp)
+					#tuptemp = (origin,item)
+					#varedges.append(tuptemp)
 
 			elif item[1][-1] == '-':
 				if {letter} - oq or cq & {letter}:
@@ -151,8 +145,8 @@ def funchk(auto):
 					todolist.add(dest)
 					openlist[dest] = openlist[origin] 
 					closelist[dest] = (closelist[origin] | {letter})
-					tuptemp = (origin,item)
-					varedges.append(tuptemp)
+					#tuptemp = (origin,item)
+					#varedges.append(tuptemp)
 				
 			else:
 				if seenlist & {dest}:
@@ -166,11 +160,7 @@ def funchk(auto):
 					closelist[dest] = closelist[origin]	
 
 	#Generate 'w','o','c' for each node based on openlist, closelist
-	print('openlist',openlist)
-	print('closelist',closelist)
-	print('autostates',auto.states)
 	for node in auto.states:
-		print('node',node)
 		opp = openlist[node]
 		cpp = closelist[node]
 		for config in auto.varstates:
@@ -179,9 +169,10 @@ def funchk(auto):
 			elif opp & {config} and not cpp & {config}:
 				finallist[node][key[config]] = 'o'
 
-
-	#return finallist, key, varedges
-	return openlist, closelist
+	auto.varconfig = finallist
+	auto.key = key
+	#return finallist, key #, varedges
+	#return openlist, closelist
 
 def csymtonull(auto,varedges):
 	for edge in varedges:
@@ -200,7 +191,7 @@ def projectionv1(auto,projections):
 					auto.transition[edge[0]].append(newedge)
 	auto.varstates = projections
 
-def foundepsilon(auto,finalgraph,currentnode,edgenode,text,letterpos,extratodo,finallist):
+def foundepsilon(auto,finalgraph,currentnode,edgenode,text,letterpos,extratodo):
 	for edge in auto.transition[edgenode]:
 		if edge[1] == text[letterpos] or edge[1] == '[sum]':
 			print('foundmatch2')
@@ -210,10 +201,10 @@ def foundepsilon(auto,finalgraph,currentnode,edgenode,text,letterpos,extratodo,f
 			else:
 				finalgraph[letterpos][currentnode].add(edge[0])
 			extratodo.add(edge[0])
-		elif edge[1] == '[epsi]' and finallist[edgenode] == finallist[edge[0]]:
-			foundepsilon(auto,finalgraph,currentnode,edge[0],text,letterpos,extratodo,finallist)
+		elif edge[1] == '[epsi]' and auto.varconfig[edgenode] == auto.varconfig[edge[0]]:
+			foundepsilon(auto,finalgraph,currentnode,edge[0],text,letterpos,extratodo)
 
-def generateAg(auto,text,finallist):
+def generateAg(auto,text):
 	finalgraph = {}
 	for i in range(len(text)):
 		finalgraph[i] = {}
@@ -259,9 +250,9 @@ def generateAg(auto,text,finallist):
 						finalgraph[i][currentnode].add(edge[0])
 
 					extratodo.add(edge[0])
-				elif edge[1] == '[epsi]' and finallist[currentnode] == finallist[edge[0]]:
+				elif edge[1] == '[epsi]' and auto.varconfig[currentnode] == auto.varconfig[edge[0]]:
 					ifnotlv3(finalgraph, i, currentnode)
-					foundepsilon(auto,finalgraph,currentnode,edge[0],text,i,extratodo,finallist)
+					foundepsilon(auto,finalgraph,currentnode,edge[0],text,i,extratodo)
 			print(finalgraph)
 			print('extratodo',extratodo)
 			#seenlist = set([])
@@ -273,7 +264,7 @@ def generateAg(auto,text,finallist):
 				#print('extranode trans',auto.transition[extranode])
 				for edge in auto.transition[extranode]:
 					print('edge',edge)
-					if edge[1] == '[epsi]' and finallist[extranode] != finallist[edge[0]]:
+					if edge[1] == '[epsi]' and auto.varconfig[extranode] != auto.varconfig[edge[0]]:
 						print('match3')
 						if i == len(text)-1:
 							if edge[0] == str(auto.end):
@@ -285,7 +276,7 @@ def generateAg(auto,text,finallist):
 						#if edge[0] not in seenlist:
 						extratodo.add(edge[0])
 						#states = finallist[edge[0]]
-					elif edge[1] == '[epsi]' and finallist[extranode] == finallist[edge[0]]:
+					elif edge[1] == '[epsi]' and auto.varconfig[extranode] == auto.varconfig[edge[0]]:
 						print('match4')
 						if edge[0] == str(auto.end):
 							finalgraph[i][currentnode].add(edge[0])
@@ -339,14 +330,14 @@ def generateAg(auto,text,finallist):
 		print ('tokeepnodes',tokeepnodes)
 		
 
-	print('\nfinalgraph \n', finalgraph)
+	#print('\nfinalgraph \n', finalgraph)
 	
 	
 
 	return finalgraph
 
 
-def finalauto(graph,finallist,last):
+def finalauto(auto,graph):
 	print('graph',graph)
 	finalgraph = {}
 	final = -1
@@ -363,7 +354,7 @@ def finalauto(graph,finallist,last):
 
 			ifnotlv1(finalgraph,str(start))
 			for edge in ending:
-				value = finallist[edge]
+				value = auto.varconfig[edge]
 				end = (positions+1, edge)
 				tup = (end,value)
 				finalgraph[str(start)].append(tup)
@@ -371,25 +362,93 @@ def finalauto(graph,finallist,last):
 			if positions > final:
 				final = positions
 
-		#print('autotrani',positions,finalgraph)
-		#time.sleep(5)	
+	endnode = (final+1,str(auto.end))
 
-	endnode = (final+1,str(last))
-	autograph = sc2.automata(0,0,0)
-	autograph.reset()
-	autograph.start = 'q0'
-	autograph.end = str(endnode)
-	autograph.transition = finalgraph
-	#print('autotran',autograph.transition)
-	#time.sleep(10)
-
-	return autograph
+	return finalgraph, endnode
 
 
 def printresults(listofoutputs):
 	print ('\n results')
 	for i in range(len(listofoutputs)):
 		print (listofoutputs[i])
+
+
+def printresultsv2(listofoutputs,auto):
+	print ('\n results')
+	key1 = {}
+	key2 = {}
+	key3 = {}
+	tempkey = {}
+	for item in auto.varstates:
+		tempkey[str(item)] = []
+
+	for i in range(len(listofoutputs)):
+		key1[i] = listofoutputs[i]
+		key3[i] = {}
+
+	print(key1)
+	print(key3)
+	print(tempkey)
+
+	for i in range(len(listofoutputs)):
+		jend = 0
+		for j in range(len(listofoutputs[i])):
+			print('j',j)
+			if jend == 1:
+				break
+			print(listofoutputs[i][j])
+			if j == 0 or listofoutputs[i][j] != listofoutputs[i][j-1]:
+				print('cond 1')
+				for k in range(len(listofoutputs[i][j])):
+					print('k',k)
+					if listofoutputs[i][j][k] == 'o':
+						if j == 0:
+							tempkey[auto.varstates[k]].append(j+1)
+							print('results1')
+						else:
+							if listofoutputs[i][j-1][k] != listofoutputs[i][j][k]:
+								tempkey[auto.varstates[k]].append(j+1)
+								print('results2')
+					elif listofoutputs[i][j][k] == 'c':
+						if j == 0:
+							tempkey[auto.varstates[k]].append(j+1)
+							tempkey[auto.varstates[k]].append(j+1)
+							print('results3')
+						else:
+							if listofoutputs[i][j-1][k] != listofoutputs[i][j][k]:
+								tempkey[auto.varstates[k]].append(j+1)
+								if len(tempkey[auto.varstates[k]]) == 1:
+									tempkey[auto.varstates[k]].append(j+1)
+								print('results4')
+
+		for key, item in tempkey.items():
+			tempkey[key] = tuple(item)
+		print(tempkey)
+		key3[i] = copy.deepcopy(tempkey)
+		print(key3)
+		for item in auto.varstates:
+			tempkey[str(item)] = []
+		print(tempkey)
+	
+
+	for i in range(len(listofoutputs)):
+		print (' config variables: ', key1[i])
+		print (key3[i])
+	
+
+		
+
+
+
+				
+
+
+
+
+		
+	
+
+
 
 
 def minString(integer,stacks,finalgraph,totallength,finallist,availableletters,letterofedges,template):
@@ -479,7 +538,7 @@ def calcresults(finalgraph,totallength,finallist):
 	print('letterofedges',letterofedges)
 
 	while k != []:
-		listofoutputs.append(str(k))
+		listofoutputs.append(k)
 		k = nextString(k,stacks,finalgraph,totallength,finallist,availableletters,letterofedges,template)
 		print('\n\n\n')
 		print('finalgraph',finalgraph)

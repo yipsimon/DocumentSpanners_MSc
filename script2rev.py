@@ -23,13 +23,18 @@ class automata():
 		self.end = endnode
 		self.last = endnode
 		self.varstates = []
+		self.key = {}
+		self.varconfig = {} 
 		self.states = set([startnode,endnode])
 		self.transition = {startnode: [(endnode,value)], endnode: []}
 
 	def reset(self):
 		self.start = 0
 		self.end = 0
+		self.last = 0
 		self.varstates = []
+		self.key = {}
+		self.varconfig = {} 
 		self.states = set([])
 		self.transition = {}
 
@@ -144,7 +149,7 @@ class automata():
 		self.addedge(0,self.end,'[epsi]')
 		#self.printauto()		
 
-	def varconfig(self,alpha):
+	def addvarconfig(self,alpha):
 		self.renumber(1)
 		self.start = 0
 		self.varstates.append(str(alpha))
@@ -154,13 +159,27 @@ class automata():
 		#self.printauto()
 
 	def printauto(self):
-		print ('start',self.start)
-		print ('end',self.end)
-		print ('varstates',self.varstates)
-		print ('states',self.states)
-		print ('last',self.last)
-		print ('transition',self.transition)
-
+		print(' -- automata data --')
+		print ('start : ',self.start)
+		print ('end : ',self.end)
+		print ('last : ',self.last)
+		print ('varstates : ',self.varstates)
+		print ('states : ',self.states)
+		print ('key : ',self.key)
+		if self.varconfig:
+			print ('varconfiguration ')
+			for key, var in self.varconfig.items():
+				print ('key : ', key, ' varconfig : ', var)
+		else:
+			print ('varconfiguration ', self.varconfig)
+		if self.transition:
+			print ('All transitions ')
+			for key, edges in self.transition.items():
+				print ('key : ',key)
+				print('edges : ',edges)
+		else:
+			print ('All transitions ', self.transition)
+		
 
 class formVisitor(PTNodeVisitor):
 
@@ -215,7 +234,7 @@ class formVisitor(PTNodeVisitor):
 	def visit_varconfig(self, node, children):
 		print ('VARCONFIG')
 		auto = children[1]
-		auto.varconfig(children[0])
+		auto.addvarconfig(children[0])
 		
 		auto.printauto()
 		return auto

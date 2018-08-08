@@ -43,6 +43,29 @@ def printgraph(auto,name):
 	g.format = 'pdf'
 	g.view()
 
+
+def printrawgraph(graph,end,name):
+	digraph = functools.partial(gv.Digraph, filename=name)
+	g = digraph()
+	g.attr(rankdir='LR', size='8,5')
+	g.attr('node', shape='doublecircle')
+	print ('end',end)
+	add_nodes(g, [str(end)])
+	g.attr('node', shape='circle')
+	edges = []
+	for key, item in graph.items():
+		for line in item:
+			if line[1] == '[epsi]':
+				value = '&epsilon;'
+			else: 
+				value = line[1]
+			tup = ((str(key),str(line[0])),{'label':str(value)})
+			edges.append(tup)
+	
+	add_edges(g, edges)
+	g.format = 'pdf'
+	g.view()
+
 def printgraphconfig(auto,finallist,name):
 	digraph = functools.partial(gv.Digraph, filename=name)
 	g = digraph()

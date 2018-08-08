@@ -3,7 +3,7 @@ import scriptgrph as sg
 import script1rev as sc1
 import threading, time, sys, copy, objgraph, random, inspect
 
-
+'''
 def convertregex(regex):
 	auto = sc2.main(regex)
 	auto.tostr()
@@ -38,7 +38,7 @@ def normalprocess(auto,text,finallist):
 def printresults(outputs):
 	
 	sc1.printresults(outputs)
-
+'''
 def projectionver1(auto,text,listofprojections,finallist, key):
 	
 	sc1.projectionv1(auto,listofprojections)
