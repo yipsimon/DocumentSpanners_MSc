@@ -26,7 +26,7 @@ def printgraph(auto,name):
 	g = digraph()
 	g.attr(rankdir='LR', size='8,5')
 	g.attr('node', shape='doublecircle')
-	print ('end',auto.end)
+	print ('end',str(auto.end))
 	add_nodes(g, [str(auto.end)])
 	g.attr('node', shape='circle')
 	edges = []

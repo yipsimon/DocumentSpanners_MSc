@@ -3,7 +3,7 @@ from arpeggio import Optional, ZeroOrMore, OneOrMore, EOF, \
     ParserPython, PTNodeVisitor, visit_parse_tree
 from arpeggio import RegExMatch as _
 from arpeggio import ParserPython
-import sys, time, re
+import sys, time, re, copy
 #dot -Tpng -O .dot
 
 def alphabet():		return _(r'[a-zA-Z0-9]')
@@ -53,6 +53,40 @@ class automata():
 		self.states = temp2
 		self.start = str(self.start)
 		self.end = str(self.end)
+
+	def rename(self):
+		ref = {}
+		ref[str(self.start)] = 0
+		i = 1
+		for node in self.states:
+			if node != str(self.start) and node != str(self.end):
+				ref[str(node)] = i
+				i += 1
+		ref[str(self.end)] = i
+		print(ref)
+		self.start = str(ref[str(self.start)])
+		self.end = str(ref[str(self.end)])
+		print(self.start)
+		print(self.end)
+		
+		self.last = i
+		self.states = set([])
+		for node in range(i+1):
+			self.states.add(str(node))
+		for name in list(self.varconfig.keys()):
+			temp2 = self.varconfig[name]
+			del self.varconfig[name]
+			self.varconfig[str(ref[name])] = copy.deepcopy(temp2)
+		for begin in list(self.transition.keys()):
+			temp = []
+			for tup in self.transition[begin]:
+				print(tup)
+				temp.append( (str(ref[str(tup[0])]),tup[1]) )
+			del self.transition[begin]
+			print(temp)
+			self.transition[str(ref[begin])] = copy.deepcopy(temp)
+
+
 
 
 		

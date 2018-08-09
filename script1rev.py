@@ -180,16 +180,8 @@ def csymtonull(auto,varedges):
 		newedge = (edge[1][0],'[epsi]')
 		auto.transition[edge[0]].append(newedge)
 
-def projectionv1(auto,projections):
-	ext = ['+','-']
-	for key, edges in auto.transition.items():
-		for edge in edges:
-			if edge[1][-1] in ext:
-				if edge[1][0] not in projection:
-					auto.transition[key].remove(edge)
-					newedge = (edge[0],'[epsi]')
-					auto.transition[edge[0]].append(newedge)
-	auto.varstates = projections
+
+	
 
 def foundepsilon(auto,finalgraph,currentnode,edgenode,text,letterpos,extratodo):
 	for edge in auto.transition[edgenode]:
@@ -435,21 +427,6 @@ def printresultsv2(listofoutputs,auto):
 		print (' config variables: ', key1[i])
 		print (key3[i])
 	
-
-		
-
-
-
-				
-
-
-
-
-		
-	
-
-
-
 
 def minString(integer,stacks,finalgraph,totallength,finallist,availableletters,letterofedges,template):
 	finalstring = []

@@ -39,80 +39,49 @@ def printresults(outputs):
 	
 	sc1.printresults(outputs)
 '''
-def projectionver1(auto,text,listofprojections,finallist, key):
+def projection(automata,string,listofprojections):
+	auto = sc2.automata(0,0,0)
+	auto.reset()
+	auto = copy.deepcopy(automata)
+	ext = ['+','-']
+	for key, edges in auto.transition.items():
+		for edge in edges:
+			if edge[1][-1] in ext:
+				if not edge[1][0] in listofprojections:
+					auto.transition[key].remove(edge)
+					newedge = (edge[0],'[epsi]')
+					auto.transition[key].append(newedge)
 	
-	sc1.projectionv1(auto,listofprojections)
-
-	print('key',key)
-	print('finallist',finallist)
+	auto.varstates = listofprojections
 	newkey = {}
-	subtract = 0
-	listing = []
-	listingletters = []
-	for k in key.keys():
-		if k in listofprojections:
-			listing.append(key[k])
-			listingletters.append(k)
-	for i in range(len(listingletters)):
-		newkey[str(listingletters[i])] = i
+	templist = []
+	for i in range(len(listofprojections)):
+		newkey[str(listofprojections[i])] = i
+	for state in list(auto.key):
+		if not state in listofprojections:
+			del auto.key[state]
+		else:
+			templist.append( auto.key[state] )
 
-	for ky, item in finallist.items():
-		tempstate = []
-		print('ky',ky)
-		print('item',item)
-		for pos in listing:
-			print('pos',pos)
-			tempstate.append(item[pos])
-		print('tempstate',tempstate)
-		finallist[ky] = tempstate
-	print('key',key)
-	print('newkey',newkey)
-	print('finallist',finallist)
+	for key, var in auto.varconfig.items():
+		tempvar = []
+		for pos in templist:
+			tempvar.append(var[pos])
+		auto.varconfig[key] = copy.deepcopy(tempvar)
 
+	auto.key = newkey
+	#auto.printauto()
 
-	outputs = normalprocess(auto,text,finallist)
+	return auto
+	'''
+	sc1.csymtonulllong(auto)
+	finalgraph = sc1.generateAg(auto,string)
+	outputs = sc1.calcresults(finalgraph, len(string), auto.varconfig)
+	sc1.printresults(outputs)
+	sc1.printresultsv2(outputs,auto)
 
-	printresults(outputs)
-
-def projectionver2(auto,text,listofprojections,finallist, key):
-
-	finalgraph = sc1.generateAg(auto,text,finallist)
-
-	finalprintable = sc1.finalauto(finalgraph,finallist,auto.end)
-
-	sg.printgraph(finalprintable,'g2')
-
-	#sc1.projectionv2(finallist,key,listofprojections)
-	print('key',key)
-	print('finallist',finallist)
-	newkey = {}
-	subtract = 0
-	listing = []
-	listingletters = []
-	for k in key.keys():
-		if k in listofprojections:
-			listing.append(key[k])
-			listingletters.append(k)
-	for i in range(len(listingletters)):
-		newkey[str(listingletters[i])] = i
-
-	for ky, item in finallist.items():
-		tempstate = []
-		print('ky',ky)
-		print('item',item)
-		for pos in listing:
-			print('pos',pos)
-			tempstate.append(item[pos])
-		print('tempstate',tempstate)
-		finallist[ky] = tempstate
-	print('key',key)
-	print('newkey',newkey)
-	print('finallist',finallist)
-
-	outputs = sc1.calcresults(finalgraph, len(text), finallist)
-
-	printresults(outputs)
-
+	sys.exit(1)
+	'''
 
 def isnotlv5(table,key):
 	if not key in table:
@@ -122,52 +91,56 @@ def isnotlv6(table,key):
 	if not key in table:
 		table[key] = set([])
 
-def joincreate(auto1,auto2,key1,key2):
+def joincreate(auto1,auto2):
 	auto = sc2.automata(0,0,0)
 	auto.reset()
-	auto.start = (auto1.start,auto2.start)
-	auto.end = (auto1.end,auto2.end)
-	auto.states = auto.states | {str(auto.start)} | {str(auto.end)}
+	auto.start = (str(auto1.start),str(auto2.start))
+	auto.end = (str(auto1.end),str(auto2.end))
+	#auto.states = auto.states | {str(auto.start)} | {str(auto.end)}
 	auto.varstates.extend(auto1.varstates)
+	for item in auto1.varstates:
+		if not item in auto.varstates:
+			auto.varstates.append(item)
+
 	for x in auto2.varstates:
 		if x not in auto.varstates:
 			auto.varstates.append(x)
 	keytemp = {}
 	for variable in auto.varstates:
-		if variable not in key1:
+		if variable not in auto1.key:
 			num1 = -1
 		else:
-			num1 = key1[variable]
+			num1 = auto1.key[variable]
 
-		if variable not in key2:
+		if variable not in auto2.key:
 			num2 = -1
 		else:
-			num2 = key2[variable]
+			num2 = auto2.key[variable]
 
 		keytemp[variable] = (num1,num2)
 
 	return auto, keytemp
 
 
-def addepsilon(auto,finallist):
+def addepsilon(auto):
 	for startnode, tuples in auto.transition.items():
 		for tup in tuples:
 			if tup[1] == '[epsi]':
-				checkfunction(auto,finallist,startnode,tup[0])
+				checkfunction(auto,startnode,tup[0])
 
-def checkfunction(auto,finallist,start,search):
+def checkfunction(auto,start,search):
 	for tup in auto.transition[search]:
 		if tup[1] == '[epsi]' and tup[0] != start:
 			if (tup[0],'[epsi]') not in auto.transition[str(start)]:
 				auto.transition[str(start)].append( (tup[0],'[epsi]') )
-			checkfunction(auto,finallist,start,tup[0])
+			checkfunction(auto,start,tup[0])
 
-def checklegal(auto,keytemp,finallist1,finallist2,seen,dest,template,currentnode,finallist,endvalue,todo,done,key3):
+def checklegal(auto,keytemp,auto1,auto2,seen,dest,template,currentnode,finallist,endvalue,todo,done,key3):
 	fail = 0
 	for variable in auto.varstates:
 		if keytemp[variable][0] == -1 or keytemp[variable][1] == -1:
 			fail = 0
-		elif finallist1[str(dest[0])][keytemp[variable][0]] != finallist2[str(dest[1])][keytemp[variable][1]]:
+		elif auto1.varconfig[str(dest[0])][keytemp[variable][0]] != auto2.varconfig[str(dest[1])][keytemp[variable][1]]:
 			fail = 1
 			break
 
@@ -185,12 +158,12 @@ def checklegal(auto,keytemp,finallist1,finallist2,seen,dest,template,currentnode
 			print('finallist',finallist)
 			if tup[0] != -1 and tup[1] == -1:
 				#finallist[str(dest)][0] = finallist1[str(dest[0])][tup[0]]
-				finallist[str(dest)][key3[variable]] = finallist1[str(dest[0])][tup[0]]
+				finallist[str(dest)][key3[variable]] = auto1.varconfig[str(dest[0])][tup[0]]
 			elif tup[1] != -1 and tup[0] == -1:
 				#finallist[str(dest)][1] = finallist2[str(dest[1])][tup[1]]
-				finallist[str(dest)][key3[variable]] = finallist2[str(dest[1])][tup[1]]
+				finallist[str(dest)][key3[variable]] = auto2.varconfig[str(dest[1])][tup[1]]
 			else:
-				finallist[str(dest)][key3[variable]] = finallist1[str(dest[0])][tup[0]]
+				finallist[str(dest)][key3[variable]] = auto1.varconfig[str(dest[0])][tup[0]]
 				#finallist[str(dest)][0] = finallist1[str(dest[0])][tup[0]]
 				#finallist[str(dest)][1] = finallist2[str(dest[1])][tup[1]]
 		end = (str(dest), endvalue)
@@ -200,32 +173,24 @@ def checklegal(auto,keytemp,finallist1,finallist2,seen,dest,template,currentnode
 			todo.add(dest)
 			
 
-def joinver1(auto1,auto2):	
+def joinver1(auto1,auto2):
+	'''	
 	openlist1, closelist1 = sc1.funchk(auto1)
 	openlist2, closelist2 = sc1.funchk(auto2)
 	
 	finallist1, key1 = sc1.getvarconfig(auto1,openlist1,closelist1)
 	finallist2, key2 = sc1.getvarconfig(auto2,openlist2,closelist2)
+
 	print('finallist1',finallist1)
 	print('finallist2',finallist2)
 	sc1.csymtonulllong(auto1)
 	sc1.csymtonulllong(auto2)
-	addepsilon(auto1,finallist1)
-	addepsilon(auto2,finallist2)
-
-	for key, edges in auto1.transition.items():
-		print('key: ', key)
-		for edge in edges:
-			print(edge)
-		print('\n')
-
-	#sg.printgraph(auto1,'test1')
-	print('auto1.tran',auto1.transition)
-	print('auto1.start',auto1.start)
-	print('auto1.end',auto1.end)
+	'''
+	addepsilon(auto1)
+	addepsilon(auto2)
 	
-	auto, keytemp = joincreate(auto1,auto2,key1,key2)
-
+	auto, keytemp = joincreate(auto1,auto2)
+	
 	key3 = {}
 	template = list()
 	for i in range(len(auto.varstates)):
@@ -233,9 +198,9 @@ def joinver1(auto1,auto2):
 		template.append('w')
 
 	isnotlv5(auto.transition,str((auto1.end,auto2.end)))
-	todo = set([(auto1.start,auto2.start)])
+	todo = set([(str(auto1.start),str(auto2.start))])
 	done = set([])
-	finallist = {str((auto1.start,auto2.start)): template}
+	finallist = {str((str(auto1.start),str(auto2.start))): template}
 	while todo:
 		print('todo\n',todo)
 		currentnode = todo.pop()
@@ -248,16 +213,16 @@ def joinver1(auto1,auto2):
 			for edge2 in auto2.transition[str(currentnode[1])]:
 				if edge1[1] == edge2[1]:
 					dest = (edge1[0],edge2[0])
-					checklegal(auto,keytemp,finallist1,finallist2,seen,dest,template,currentnode,finallist,edge1[1],todo,done,key3)
+					checklegal(auto,keytemp,auto1,auto2,seen,dest,template,currentnode,finallist,edge1[1],todo,done,key3)
 
 			if edge1[1] == '[epsi]':
 				dest = (edge1[0],currentnode[1])
-				checklegal(auto,keytemp,finallist1,finallist2,seen,dest,template,currentnode,finallist,edge1[1],todo,done,key3)
+				checklegal(auto,keytemp,auto1,auto2,seen,dest,template,currentnode,finallist,edge1[1],todo,done,key3)
 
 		for edge3 in auto2.transition[str(currentnode[1])]:
 			if edge3[1] == '[epsi]':
 				dest = (currentnode[0],edge3[0])
-				checklegal(auto,keytemp,finallist1,finallist2,seen,dest,template,currentnode,finallist,edge3[1],todo,done,key3)		
+				checklegal(auto,keytemp,auto1,auto2,seen,dest,template,currentnode,finallist,edge3[1],todo,done,key3)		
 	'''
 	tokeepnodes = set([str((auto1.end,auto2.end))])
 	print('tokeepnodes',tokeepnodes)
@@ -289,10 +254,11 @@ def joinver1(auto1,auto2):
 
 	print('\nfinalgraph \n', finalgraph)
 	'''
-
-
-
-	return auto, finallist, key3
+	auto.varconfig = finallist
+	auto.key = key3
+	auto.printauto()
+	
+	return auto
 
 #Not sure 
 def joinver2(auto1,auto2):
