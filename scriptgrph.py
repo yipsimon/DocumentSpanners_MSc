@@ -43,6 +43,36 @@ def printgraph(auto,name):
 	g.format = 'pdf'
 	g.view()
 
+def printgraph3(auto,name):
+	digraph = functools.partial(gv.Digraph, filename=name)
+	g = digraph()
+	g.attr(rankdir='LR', size='8,5')
+	g.attr('node', shape='doublecircle')
+	print ('end',str(auto.end))
+	add_nodes(g, [str(auto.end)])
+	g.attr('node', shape='circle')
+	edges = []
+	for key, item in auto.transition.items():
+		if key == '0':
+			for line in item:
+				if line[1] == '[epsi]':
+					value = '&epsilon;'
+				else: 
+					value = line[1]
+				tup = ((str(key),str(line[0])),{'label':str(value)})
+				edges.append(tup)
+		else:
+			if item[1] == '[epsi]':
+				value = '&epsilon;'
+			else: 
+				value = item[1]
+			tup = ((str(key),str(item[0])),{'label':str(value)})
+			edges.append(tup)
+	
+	add_edges(g, edges)
+	g.format = 'pdf'
+	g.view()
+
 
 def printrawgraph(graph,end,name):
 	digraph = functools.partial(gv.Digraph, filename=name)

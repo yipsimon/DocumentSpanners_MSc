@@ -353,7 +353,7 @@ def joinver2(auto1,auto2):
 
 def ifnotlv7(table,key):
 	if not key in table:
-		table[key] = []
+		table[key] = ''
 
 def createauto(item,string,varstates):
 	auto = sc2.automata(0,0,0)
@@ -368,27 +368,27 @@ def createauto(item,string,varstates):
 	for i in range(1,len(string)+2):
 		if i == item[1]:
 			ifnotlv7(auto.transition,node)
-			auto.transition[node].append((node+1,'x+'))
+			auto.transition[node] = (node+1,'x+')
 			auto.states.add(node+1)
 			node += 1
 		if i == item[2]:
 			ifnotlv7(auto.transition,node)
-			auto.transition[node].append((node+1,'y+'))
+			auto.transition[node] = (node+1,'y+')
 			auto.states.add(node+1)
 			node += 1
 		if i == (item[0]+item[1]):
 			ifnotlv7(auto.transition,node)
-			auto.transition[node].append((node+1,'x-'))
+			auto.transition[node] = (node+1,'x-')
 			auto.states.add(node+1)
 			node += 1
 		if i == (item[0]+item[2]):
 			ifnotlv7(auto.transition,node)
-			auto.transition[node].append((node+1,'y-'))
+			auto.transition[node] = (node+1,'y-')
 			auto.states.add(node+1)
 			node += 1
 		if i == maxmum and i < (len(string)+1):
 			ifnotlv7(auto.transition,node)
-			auto.transition[node].append((node+1,'[sum]'))
+			auto.transition[node] = (node+1,'[sum]')
 			ifnotlv7(auto.transition,node+1)
 			auto.states.add(node+1)
 			breaking = 1
@@ -398,9 +398,13 @@ def createauto(item,string,varstates):
 			#node += 1
 		else:
 			ifnotlv7(auto.transition,node)
-			auto.transition[node].append((node+1,string[i-1]))
+			auto.transition[node] = (node+1,string[i-1])
 			auto.states.add(node+1)
 			node += 1
+	temp = auto.transition[0]
+	auto.transition[0] = [temp]
+
+
 	if breaking == 1:
 		auto.end = node+1
 		auto.last = node+1
@@ -423,59 +427,67 @@ def combinationauto(mainauto,maindest,mainshortcut,item,string,varstates):
 	#print('shortcut',shortcut)
 	if shortcut == 1 and mainshortcut == 1:
 		#print ('mode 1')
-		lastedge = auto.transition[dest-1][0]
+		#for item in auto.transition[dest-1]:
+			#lastedge = item
+		
+		#lastedge = auto.transition[dest-1][0]
+		lastedge = auto.transition[dest-1]
 		#print('lastedge',lastedge)
 		for i in range(auto.end,dest-2,-1):
 			del auto.transition[i]
 			auto.states.remove(i)
-		auto.transition[dest-1] = []
+		auto.transition[dest-1] = ''
 		auto.states.add(dest-1)
 		#print('beforeauto',auto.transition)
 		auto.end = dest-1
-		auto.renumber(mainauto.last)
+		auto.renumber3(mainauto.last)
 		mainauto.states = mainauto.states | auto.states
 		#print('afterauto',auto.transition)
 		for key, item in auto.transition.items():
-			if not key in mainauto.transition:
-				mainauto.transition[key] = []
+			#if not key in mainauto.transition:
+				#mainauto.transition[key] = set([])
 			if key == auto.start:
 				#mainauto.addedge(mainauto.start,item[0],item[1])
-				mainauto.transition[mainauto.start].extend(item)
+				mainauto.transition[mainauto.start].append(item)
 			else:
 				#mainauto.addedge(key,item[0],item[1])
-				mainauto.transition[key].extend(item)
+				mainauto.transition[key] = item
 		#print('auto.end',auto.end)
 		#print('beforemainauto',mainauto.transition)
-		mainauto.transition[auto.end].append( (maindest,lastedge[1]) )
+		mainauto.transition[auto.end] = (maindest,lastedge[1])
 		mainauto.states = mainauto.states | {auto.end}
 		#mainauto.addedge(auto.end,maindest,lastedge[1])
 		#print('automainauto',mainauto.transition)
 
 	else:
 		#print ('mode 2')
-		lastedge = auto.transition[auto.end-1][0]
+		for item in auto.transition[dest-1]:
+			lastedge = item
+		
+		#lastedge = auto.transition[auto.end-1][0]
+		lastedge = auto.transition[dest-1]
 		#print('lastedge',lastedge)
 		del auto.transition[auto.end]
-		auto.transition[auto.end-1] = []
+		auto.transition[auto.end-1] = ''
 		auto.states.remove(auto.end)
 		auto.states.remove(auto.end-1)
 		#print('beforeauto',auto.transition)
 		auto.end = auto.end-1
-		auto.renumber(mainauto.last)
+		auto.renumber3(mainauto.last)
 		mainauto.states = mainauto.states | auto.states
 		#print('afterauto',auto.transition)
 		for key, item in auto.transition.items():
-			if not key in mainauto.transition:
-				mainauto.transition[key] = []
+			#if not key in mainauto.transition:
+				#mainauto.transition[key] = set([])
 			if key == auto.start:
 				#mainauto.addedge(mainauto.start,item[0],item[1])
-				mainauto.transition[mainauto.start].extend(item)
+				mainauto.transition[mainauto.start].append(item)
 			else:
 				#mainauto.addedge(key,item[0],item[1])
-				mainauto.transition[key].extend(item)
+				mainauto.transition[key] = item
 		#print('auto.end',auto.end)
 		#print('beforemainauto',mainauto.transition)
-		mainauto.transition[auto.end].append( (mainauto.end,lastedge[1]) )
+		mainauto.transition[auto.end] = (mainauto.end,lastedge[1])
 		mainauto.states = mainauto.states | {auto.end}
 		#mainauto.addedge(auto.end,mainauto.end,lastedge[1])
 		#print('aftermainauto',mainauto.transition)
@@ -489,10 +501,12 @@ def combinationauto(mainauto,maindest,mainshortcut,item,string,varstates):
 	#mainauto.printauto()
 	return mainauto, maindest, mainshortcut
 
-def stringequality(string):
+def stringequality(string,start=1,end=-1):
 	listoftup = []
 	count = 0
-	for i in range(1,len(string)+2):
+	if end == -1:
+		end = len(string)+2
+	for i in range(start,end):
 		for j in range(1,len(string)+2-i):
 			for k in range(1,len(string)+2-i):
 				if string[j-1:j+i-1] == string[k-1:k+i-1]:
@@ -513,11 +527,11 @@ def stringequality(string):
 		autostring,deststring,shortcut = combinationauto(autostring,deststring,shortcut,listoftup[i],string,['x','y'])
 		#sg.printgraph(autostring,str(i))
 	'''
-	autostring.tostr()
+	autostring.tostr3()
 	autostring.start = str(autostring.start)
 	autostring.end = str(autostring.end)
 	#autostring.printauto()
-	#sg.printgraph(autostring,'final')
+	#sg.printgraph3(autostring,'final')
 	#finallist, key, varedges = sc1.funchk(autostring)
 	#finallist, key = functionalcheck(autostring)
 	'''
@@ -559,11 +573,9 @@ sg.printgraph(auto1,'test')
 def main():
 	start_time = time.time()
 	string1 = 'a'*30
-	#print(string1)
-	#print(sys.getsizeof(string1))
+	
 	auto1 = stringequality(string1)
-	#print(sys.getsizeof(auto1))
-	#auto1.printauto()
+	
 	print("--- %s seconds ---" % (time.time() - start_time))
 	objgraph.show_most_common_types()	
 

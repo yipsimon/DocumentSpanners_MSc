@@ -6,9 +6,9 @@ from arpeggio import ParserPython
 import sys, time, re, copy
 #dot -Tpng -O .dot
 
-def alphabet():		return _(r'[a-zA-Z0-9]')
-def varconfig(): 	return "[", _(r'[a-zA-Z0-9]') ,":", expression,"]"
-def terminals():	return [alphabet, varconfig, ("(", expression, ")")]
+def alphabet():		return _(r'.')
+def varconfig(): 	return "<", _(r'[a-zA-Z0-9]') ,":", expression,">"
+def terminals():	return [('"',alphabet,'"'), varconfig, ("(", expression, ")")]
 def plus(): 		return terminals,"+"
 def star():			return terminals,"*"
 def concat():		return terminals, OneOrMore(",", terminals)
@@ -54,6 +54,42 @@ class automata():
 		self.start = str(self.start)
 		self.end = str(self.end)
 
+	def tostr2(self):
+		temp = {}
+		for key, items in self.transition.items():
+			temp[str(key)] = set([])
+			for item in items:
+				nitem = (str(item[0]),str(item[1]))
+				temp[str(key)].add(nitem)
+
+		self.transition = temp
+		temp2 = set([])
+		for item in self.states:
+			temp2.add(str(item))
+		self.states = temp2
+		self.start = str(self.start)
+		self.end = str(self.end)
+
+	def tostr3(self):
+		temp = {}
+		for key, items in self.transition.items():
+			if key == 0:
+				temp[str(key)] = []
+				for item in items:
+					nitem = (str(item[0]),str(item[1]))
+					temp[str(key)].append(nitem)
+			elif items != '':
+				nitem = (str(items[0]),str(items[1]))
+				temp[str(key)] = nitem
+
+		self.transition = temp
+		temp2 = set([])
+		for item in self.states:
+			temp2.add(str(item))
+		self.states = temp2
+		self.start = str(self.start)
+		self.end = str(self.end)
+
 	def rename(self):
 		ref = {}
 		ref[str(self.start)] = 0
@@ -86,9 +122,44 @@ class automata():
 			print(temp)
 			self.transition[str(ref[begin])] = copy.deepcopy(temp)
 
+	def renumber2(self,num):
+		self.start += num
+		self.end += num
+		temp = set([])
+		for nodes in self.states:
+			num1 = int(nodes)+num
+			temp.add(num1)
+		self.states = temp
+		self.lastnum = num1
+		temp = {}
+		for key, item in self.transition.items():
+			temp[int(key)+num] = set([])
+			for tup in item:
+				ntup = (tup[0]+num,tup[1])
+				temp[int(key)+num].add(ntup)
+		self.transition = temp
 
-
-
+	def renumber3(self,num):
+		self.start += num
+		self.end += num
+		temp = set([])
+		for nodes in self.states:
+			num1 = int(nodes)+num
+			temp.add(num1)
+		self.states = temp
+		self.lastnum = num1
+		temp = {}
+		for key, item in self.transition.items():
+			#temp[int(key)+num] = set([])
+			if key == 0:
+				for tup in item:
+					#print(tup)
+					ntup = (int(tup[0])+num,tup[1])
+					temp[int(key)+num] = ntup
+			elif item != '':
+				nitem = (int(item[0])+num,item[1])
+				temp[int(key)+num] = nitem
+		self.transition = temp
 		
 	def renumber(self,num):
 		self.start += num
@@ -220,7 +291,7 @@ class formVisitor(PTNodeVisitor):
 	def visit_alphabet(self, node, children):
 		print ('LETTER')
 		print ('node.value',node.value)
-		#time.sleep(10)
+		#time.sleep(5)
 		auto = automata(0,1,node.value)
 		auto.printauto()
 		return auto
@@ -278,7 +349,7 @@ def main(argv):
 	
 	# Parsing
 	#different alg relation next to each other i.e a*|b require brackets (a*)|b
-	parser = ParserPython(formula) #, reduce_tree = True)
+	parser = ParserPython(formula, debug=True) #, reduce_tree = True)
 	#input_regex = " (a*) & [x:(b&[y:c])]"
 	#input_regex = input('Enter regex formula: ')
 	parse_tree = parser.parse(argv)

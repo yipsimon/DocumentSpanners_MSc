@@ -1,10 +1,12 @@
 import script2rev as sc2
-import time
-test = {1,2,3,4,5}
+import script3rev as sc3
+import scriptgrph as sg
+import script1rev as sc1
+import threading, time, sys, copy, objgraph, random, inspect
 
-ext = ['+','-']
-tup = ('7','x+')
-print(tup[1][-1])
+start_time = time.time()
+regex = "'[a]',<x:'a'>,'@'"
+auto = sc2.main(regex)
 
-if tup[1][-1] in ext:
-	print('true')
+
+print("--- %s seconds ---" % (time.time() - start_time))
