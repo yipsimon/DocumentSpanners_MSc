@@ -1,0 +1,10 @@
+digraph {
+	rankdir=LR size="8,5"
+	node [shape=doublecircle]
+	"(3, '5')"
+	node [shape=circle]
+	q0 -> "(0, '0')" [label="['w']"]
+	"(0, '0')" -> "(1, '2')" [label="['o']"]
+	"(2, '4')" -> "(3, '5')" [label="['c']"]
+	"(1, '2')" -> "(2, '4')" [label="['c']"]
+}

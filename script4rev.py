@@ -5,7 +5,7 @@ import script1rev as sc1
 import threading, time, sys, copy, objgraph, random, inspect
 
 start_time = time.time()
-
+string = 'aaa'
 automata1 = sc2.automata(0,0,0)
 automata2 = sc2.automata(0,0,0)
 automata1.reset()
@@ -38,6 +38,25 @@ automata.rename()
 automata.printauto()
 sg.printgraph(automata,'output')
 
+finalgraph = sc1.generateAg(automata,string)
+
+automata.printauto()
+for pos, trans in finalgraph.items():
+	print ('position : ', pos)
+	for start, item in trans.items():
+		print ('start node : ', start)
+		print ('destinations : ', item)
+
+outputgraph, outputendnode = sc1.finalauto(automata,finalgraph)
+sg.printrawgraph(outputgraph,outputendnode,'output')
+#automata = sc3.projectionver1(automata,string,['x','z'])
+
+outputs = sc1.calcresults(finalgraph, len(string), automata.varconfig)
+sc1.printresultsv2(outputs,automata)
+
+
+sys.exit(1)
+'''
 automata3 = sc2.automata(0,0,0)
 automata3.reset()
 automata3.states = automata3.states | {'a','b','c'}
@@ -58,24 +77,6 @@ sg.printgraph(automata,'output2')
 
 
 
-sys.exit(1)
-'''
-
-finalgraph = sc1.generateAg(automata,string)
-
-automata.printauto()
-for pos, trans in finalgraph.items():
-	print ('position : ', pos)
-	for start, item in trans.items():
-		print ('start node : ', start)
-		print ('destinations : ', item)
-
-outputgraph, outputendnode = sc1.finalauto(automata,finalgraph)
-sg.printrawgraph(outputgraph,outputendnode,'output')
-automata = sc3.projectionver1(automata,string,['x','z'])
-
-outputs = sc1.calcresults(finalgraph, len(string), automata.varconfig)
-sc1.printresults(outputs)
 
 
 

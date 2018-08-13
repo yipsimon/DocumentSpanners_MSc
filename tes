@@ -1,0 +1,10 @@
+digraph {
+	rankdir=LR size="8,5"
+	node [shape=doublecircle]
+	2
+	node [shape=circle]
+	1 -> 0 [label="&epsilon;"]
+	1 -> 2 [label="&epsilon;"]
+	0 -> 1 [label="."]
+	0 -> 2 [label="&epsilon;"]
+}
