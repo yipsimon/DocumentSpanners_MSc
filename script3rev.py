@@ -489,10 +489,12 @@ def combinationauto(mainauto,maindest,mainshortcut,item,string,varstates):
 	#mainauto.printauto()
 	return mainauto, maindest, mainshortcut
 
-def stringequality(string):
+def stringequality(string,start=1,end=-1):
 	listoftup = []
 	count = 0
-	for i in range(1,len(string)+2):
+	if end == -1:
+		end = len(string)+2
+	for i in range(start,end):
 		for j in range(1,len(string)+2-i):
 			for k in range(1,len(string)+2-i):
 				if string[j-1:j+i-1] == string[k-1:k+i-1]:
@@ -502,7 +504,7 @@ def stringequality(string):
 						autostring,deststring,shortcut = combinationauto(autostring,deststring,shortcut,(i,j,k),string,['x','y'])
 					listoftup.append((i,j,k))
 					count += 1
-	#print(listoftup)
+	print(listoftup)
 	print(len(listoftup))
 	#print(count)
 	#print('listoftup mem',sys.getsizeof(listoftup))
@@ -517,7 +519,7 @@ def stringequality(string):
 	autostring.start = str(autostring.start)
 	autostring.end = str(autostring.end)
 	#autostring.printauto()
-	#sg.printgraph(autostring,'final')
+	sg.printgraph(autostring,'final')
 	#finallist, key, varedges = sc1.funchk(autostring)
 	#finallist, key = functionalcheck(autostring)
 	'''
@@ -558,7 +560,7 @@ sg.printgraph(auto1,'test')
 
 def main():
 	start_time = time.time()
-	string1 = 'a'*30
+	string1 = 'a'*3
 	#print(string1)
 	#print(sys.getsizeof(string1))
 	auto1 = stringequality(string1)

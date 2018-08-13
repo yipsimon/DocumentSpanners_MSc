@@ -5,7 +5,7 @@ from arpeggio import RegExMatch as _
 from arpeggio import ParserPython
 import sys, time, re, copy
 #dot -Tpng -O .dot
-
+'''
 def alphabet():		return _(r'([^"])+')
 def varconfig(): 	return "<", _(r'[a-zA-Z0-9]') ,":", expression,">"
 def terminals():	return [('"',alphabet,'"'), varconfig, ("(", expression, ")")]
@@ -15,7 +15,16 @@ def concat():		return terminals, OneOrMore(",", terminals)
 def union(): 		return terminals, OneOrMore("|", terminals)
 def expression():	return [concat, union, varconfig, plus, star, terminals]
 def formula():		return OneOrMore(expression)
-
+'''
+def alphabet():		return _(r'([^\,\|\<\>\*\+])+')
+def varconfig(): 	return "<", _(r'[a-zA-Z0-9]') ,":", expression,">"
+def terminals():	return [plus, star,("(", expression, ")"), alphabet, varconfig]
+def plus(): 		return alphabet,"+"
+def star():			return alphabet,"*"
+def concat():		return terminals, OneOrMore(",", terminals)
+def union(): 		return terminals, OneOrMore("|", terminals)
+def expression():	return [concat, union, varconfig, terminals]
+def formula():		return OneOrMore(expression), EOF
 
 class automata():
 	def __init__(self,startnode,endnode,value):
