@@ -5,65 +5,70 @@ import script1rev as sc1
 import threading, time, sys, copy, objgraph, random, inspect
 
 start_time = time.time()
-string = 'aaa'
+
 automata1 = sc2.automata(0,0,0)
-
+automata2 = sc2.automata(0,0,0)
 automata1.reset()
+automata2.reset()
 automata1.states = automata1.states | {'0','1','2','3','4'}
-
+automata2.states = automata2.states | {'A','B','C','D',"E"}
 automata1.varstates = ['x','y']
-
+automata2.varstates = ['x','y']
 automata1.transition['0'] = [('0','a'),('1','x+')]
 automata1.transition['1'] = [('1','a'),('2','y+')]
 automata1.transition['2'] = [('2','a'),('3','x-')]
 automata1.transition['3'] = [('3','a'),('4','y-')]
 automata1.transition['4'] = [('4','a')]
+automata2.transition['A'] = [('A','a'),('B','y+')]
+automata2.transition['B'] = [('B','a'),('C','x+')]
+automata2.transition['C'] = [('C','a'),('D','y-')]
+automata2.transition['D'] = [('D','a'),('E','x-')]
+automata2.transition['E'] = [('E','a')]
 automata1.start = '0'
 automata1.end = '4'
-
+automata2.start = 'A'
+automata2.end = 'E'
+string = 'aaa'
 sc1.funchk(automata1)
 sc1.csymtonulllong(automata1)
+#sc1.funchk(automata2)
+#sc1.csymtonulllong(automata2)
+#automata1.printauto()
+#automata1.printauto()
+#automata = sc3.joinver1(automata1,automata2)
+#automata.printauto()
+#automata.rename()
 automata3 = sc3.stringequality(string)
+
+sc1.funchk(automata3)
 sc1.csymtonulllong(automata3)
+automata3.printauto()
+
+
 automata = sc3.joinver1(automata1,automata3)
 
-automata.printauto()
-sg.printgraph(automata,'output')
-
-sys.exit(1)
 
 finalgraph = sc1.generateAg(automata,string)
-
-automata.printauto()
-for pos, trans in finalgraph.items():
-	print ('position : ', pos)
-	for start, item in trans.items():
-		print ('start node : ', start)
-		print ('destinations : ', item)
+#print('final')
+#automata.printauto()
 
 outputgraph, outputendnode = sc1.finalauto(automata,finalgraph)
 sg.printrawgraph(outputgraph,outputendnode,'output')
 #automata = sc3.projectionver1(automata,string,['x','z'])
 
 outputs = sc1.calcresults(finalgraph, len(string), automata.varconfig)
-sc1.printresultsv2(outputs,automata)
-
-
+sc1.printresults(outputs)
 sys.exit(1)
+
+#automata.rename()
+#sys.exit(1)
+#automata.printauto()
+#sg.printgraph(automata,'output')
+
+#automata.printauto()
+#sg.printgraph(automata,'output')
+
 '''
-automata2.reset()
-automata2 = sc2.automata(0,0,0)
-automata2.states = automata2.states | {'A','B','C','D',"E"}
-automata2.varstates = ['x','y']
-automata2.transition['A'] = [('A','a'),('B','y+')]
-automata2.transition['B'] = [('B','a'),('C','x+')]
-automata2.transition['C'] = [('C','a'),('D','y-')]
-automata2.transition['D'] = [('D','a'),('E','x-')]
-automata2.transition['E'] = [('E','a')]
-automata2.start = 'A'
-automata2.end = 'E'
-sc1.funchk(automata2)
-sc1.csymtonulllong(automata2)
 automata3 = sc2.automata(0,0,0)
 automata3.reset()
 automata3.states = automata3.states | {'a','b','c'}
@@ -81,6 +86,20 @@ automata = sc3.joinver1(automata,automata3)
 automata.rename()
 automata.printauto()
 sg.printgraph(automata,'output2')
+'''
+
+
+'''
+for pos, trans in finalgraph.items():
+	print ('position : ', pos)
+	for start, item in trans.items():
+		print ('start node : ', start)
+		print ('destinations : ', item)
+sys.exit(1)
+'''
+'''
+
+
 
 
 

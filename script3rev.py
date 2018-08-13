@@ -150,12 +150,12 @@ def checklegal(auto,keytemp,auto1,auto2,seen,dest,template,currentnode,finallist
 		finallist[str(dest)].extend(template)
 		isnotlv5(auto.transition,str(currentnode))
 		#isnotlv5(finallist,dest)
-		print('keytemp',keytemp)
+		#print('keytemp',keytemp)
 		for variable in auto.varstates:
 			tup = keytemp[variable]
-			print('tup',tup)
-			print ('dest',dest)
-			print('finallist',finallist)
+			#print('tup',tup)
+			#print ('dest',dest)
+			#print('finallist',finallist)
 			if tup[0] != -1 and tup[1] == -1:
 				#finallist[str(dest)][0] = finallist1[str(dest[0])][tup[0]]
 				finallist[str(dest)][key3[variable]] = auto1.varconfig[str(dest[0])][tup[0]]
@@ -202,16 +202,19 @@ def joinver1(auto1,auto2):
 	done = set([])
 	finallist = {str((str(auto1.start),str(auto2.start))): template}
 	while todo:
-		print('todo\n',todo)
+		#print('todo\n',todo)
 		currentnode = todo.pop()
 		auto.states.add(str(currentnode))
 		done.add(currentnode)
-		print('currentnode\n',currentnode)
-		print('\n')
+		#print('currentnode\n',currentnode)
+		#print('\n')
 		seen = set([])
+
 		for edge1 in auto1.transition[str(currentnode[0])]:
 			for edge2 in auto2.transition[str(currentnode[1])]:
-				if edge1[1] == edge2[1]:
+				matching1 = re.match(edge1[1],edge2[1])
+				matching2 = re.match(edge2[1],edge1[1])
+				if edge1[1] == edge2[1] or matching1 or matching2:
 					dest = (edge1[0],edge2[0])
 					checklegal(auto,keytemp,auto1,auto2,seen,dest,template,currentnode,finallist,edge1[1],todo,done,key3)
 
@@ -223,6 +226,7 @@ def joinver1(auto1,auto2):
 			if edge3[1] == '[epsi]':
 				dest = (currentnode[0],edge3[0])
 				checklegal(auto,keytemp,auto1,auto2,seen,dest,template,currentnode,finallist,edge3[1],todo,done,key3)		
+	#sys.exit(1)
 	'''
 	tokeepnodes = set([str((auto1.end,auto2.end))])
 	print('tokeepnodes',tokeepnodes)
@@ -256,8 +260,9 @@ def joinver1(auto1,auto2):
 	'''
 	auto.varconfig = finallist
 	auto.key = key3
-	auto.printauto()
-	
+	sg.printgraph(auto,'final2')
+	#auto.printauto()
+	#sys.exit(1)
 	return auto
 
 #Not sure 
@@ -490,11 +495,11 @@ def combinationauto(mainauto,maindest,mainshortcut,item,string,varstates):
 	return mainauto, maindest, mainshortcut
 
 def stringequality(string,start=1,end=-1):
-	listoftup = []
+	#listoftup = []
 	count = 0
-	if end == -1:
-		end = len(string)+2
-	for i in range(start,end):
+	#if end == -1:
+	#	end = len(string)+2
+	for i in range(1,len(string)+2):
 		for j in range(1,len(string)+2-i):
 			for k in range(1,len(string)+2-i):
 				if string[j-1:j+i-1] == string[k-1:k+i-1]:
@@ -502,11 +507,11 @@ def stringequality(string,start=1,end=-1):
 						autostring, deststring, shortcut = createauto((i,j,k),string,['x','y'])	
 					else:
 						autostring,deststring,shortcut = combinationauto(autostring,deststring,shortcut,(i,j,k),string,['x','y'])
-					listoftup.append((i,j,k))
+					#listoftup.append((i,j,k))
 					count += 1
-	print(listoftup)
-	print(len(listoftup))
-	#print(count)
+	#print(listoftup)
+	#print(len(listoftup))
+	print(count)
 	#print('listoftup mem',sys.getsizeof(listoftup))
 	'''
 	autostring, deststring, shortcut = createauto(listoftup[0],string,['x','y'])	
@@ -519,7 +524,8 @@ def stringequality(string,start=1,end=-1):
 	autostring.start = str(autostring.start)
 	autostring.end = str(autostring.end)
 	#autostring.printauto()
-	sg.printgraph(autostring,'final')
+	print(len(autostring.states))
+	#sg.printgraph(autostring,'final')
 	#finallist, key, varedges = sc1.funchk(autostring)
 	#finallist, key = functionalcheck(autostring)
 	'''

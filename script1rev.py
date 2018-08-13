@@ -186,17 +186,17 @@ def csymtonull(auto,varedges):
 
 def foundepsilon(auto,finalgraph,currentnode,edgenode,text,letterpos,extratodo):
 	for edge in auto.transition[edgenode]:
-		#if edge[1] == text[letterpos] or edge[1] == '[sum]':
-		if edge[1] != '[epsi]':
-			matching = re.match(edge[1],text[letterpos])
-			if matching:
-				print('foundmatch2')
-				if letterpos == len(text)-1:
-					if edge[0] == str(auto.end):
-						finalgraph[letterpos][currentnode].add(edge[0])		
-				else:
-					finalgraph[letterpos][currentnode].add(edge[0])
-				extratodo.add(edge[0])
+		if edge[1] == text[letterpos] or edge[1] == '[sum]':
+		#if edge[1] != '[epsi]':
+			#matching = re.match(edge[1],text[letterpos])
+			#if matching:
+				#print('foundmatch2')
+			if letterpos == len(text)-1:
+				if edge[0] == str(auto.end):
+					finalgraph[letterpos][currentnode].add(edge[0])		
+			else:
+				finalgraph[letterpos][currentnode].add(edge[0])
+			extratodo.add(edge[0])
 		elif edge[1] == '[epsi]' and auto.varconfig[edgenode] == auto.varconfig[edge[0]]:
 			foundepsilon(auto,finalgraph,currentnode,edge[0],text,letterpos,extratodo)
 
@@ -216,12 +216,12 @@ def generateAg(auto,text):
 		seenlist.add(item)
 		for tup in auto.transition[item]:
 			
-			#if tup[1] == text[0]:
-			if tup[1] != '[epsi]':
-				matching = re.match(tup[1],text[0])
-				if matching:
-					nxsetnodes.add(item)
-					finalgraph[-1]['0'].add(item)
+			if tup[1] == text[0]:
+			#if tup[1] != '[epsi]':
+				#matching = re.match(tup[1],text[0])
+				#if matching:
+				nxsetnodes.add(item)
+				finalgraph[-1]['0'].add(item)
 			if tup[1] == '[epsi]' and ({str(tup[1])} not in seenlist):
 				tochecklist.add(str(tup[0]))
 	
@@ -239,20 +239,20 @@ def generateAg(auto,text):
 			for edge in auto.transition[currentnode]:
 				print('edge',edge)
 
-				#if edge[1] == text[i] or edge[1] == '[sum]':
-				if edge[1] != '[epsi]':
-					print(edge[1])
+				if edge[1] == text[i] or edge[1] == '[sum]':
+				#if edge[1] != '[epsi]':
+					#print(edge[1])
 					#time.sleep(2)
-					matching = re.match(edge[1],text[i])
-					print('foundmatch')
-					if matching:
-						if i == len(text)-1:
-							if edge[0] == str(auto.end):
-								ifnotlv3(finalgraph, i, currentnode)
-								finalgraph[i][currentnode].add(edge[0])	
-						else:
+					#matching = re.match(edge[1],text[i])
+					#print('foundmatch')
+					#if matching:
+					if i == len(text)-1:
+						if edge[0] == str(auto.end):
 							ifnotlv3(finalgraph, i, currentnode)
-							finalgraph[i][currentnode].add(edge[0])
+							finalgraph[i][currentnode].add(edge[0])	
+					else:
+						ifnotlv3(finalgraph, i, currentnode)
+						finalgraph[i][currentnode].add(edge[0])
 
 					extratodo.add(edge[0])
 				elif edge[1] == '[epsi]' and auto.varconfig[currentnode] == auto.varconfig[edge[0]]:
