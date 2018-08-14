@@ -28,28 +28,75 @@ automata1.start = '0'
 automata1.end = '4'
 automata2.start = 'A'
 automata2.end = 'E'
-
+string = 'a'*3
 sc1.funchk(automata1)
 sc1.csymtonulllong(automata1)
-#sc1.funchk(automata2)
-#sc1.csymtonulllong(automata2)
+sc1.funchk(automata2)
+sc1.csymtonulllong(automata2)
 #automata1.printauto()
 #automata1.printauto()
-#automata = sc3.joinver1(automata1,automata2)
-#automata.printauto()
-#automata.rename()
-string = 'a'*3
-automata3 = sc3.stringequality(string)
-sys.exit(1)
+automata = sc3.joinver1(automata1,automata2)
+automata.printauto()
+
+automata.rename()
+sg.printgraphconfig(automata,automata.varconfig,'test')
+
+automata3 = sc2.automata(0,0,0)
+automata3.reset()
+automata3.states = automata3.states | {'a','b','c'}
+automata3.varstates = ['z']
+automata3.transition['a'] = [('a','a'),('b','z+')]
+automata3.transition['b'] = [('b','a'),('c','z-')]
+automata3.transition['c'] = [('c','a')]
+automata3.start = 'a'
+automata3.end = 'c'
 sc1.funchk(automata3)
 sc1.csymtonulllong(automata3)
+automata = sc3.joinver1(automata,automata3)
+sg.printgraph(automata,'output2')
+
+automata.rename()
+automata.printauto()
+'''
+automata = automata1
+
+listoftup = sc3.stringequality(string)
+co = 0
+for item in listoftup:
+	autostring, deststring, shortcut = sc3.createauto(item,string,['x','y'],0)	
+	autostring.start = str(autostring.start)
+	autostring.end = str(autostring.end)
+	autostring.states = []
+	for i in range(autostring.last+1):
+		autostring.states.append(str(i))
+
+	for key, items in autostring.transition.items():
+		if not isinstance(items, list):
+			autostring.transition[key] = [items]
+
+	sc1.funchk(autostring)
+	sc1.csymtonulllong(autostring)
+	sg.printgraphconfig(autostring,autostring.varconfig,str(i))
+	automata = sc3.joinver1(automata,autostring)
+	automata.rename()
+	sg.printgraphconfig(automata,automata.varconfig,str(i+9))
+	print('i',co)
+	automata.printauto()
+	co += 1
+	if co == 2:
+		
+		sys.exit(1)
+'''
+
+#sc1.funchk(automata3)
+#sc1.csymtonulllong(automata3)
 #sg.printgraphconfig(automata3,automata3.varconfig,'test1')
 #automata3.printauto()
 
+#sg.printgraphconfig(automata,automata.varconfig,'test2')
 
 
-automata = sc3.joinver1(automata1,automata3)
-sg.printgraphconfig(automata,automata.varconfig,'test2')
+
 
 
 finalgraph = sc1.generateAg(automata,string)
@@ -72,22 +119,7 @@ sc1.printresultsv2(outputs,automata)
 #sg.printgraph(automata,'output')
 
 '''
-automata3 = sc2.automata(0,0,0)
-automata3.reset()
-automata3.states = automata3.states | {'a','b','c'}
-automata3.varstates = ['z']
-automata3.transition['a'] = [('a','a'),('b','z+')]
-automata3.transition['b'] = [('b','a'),('c','z-')]
-automata3.transition['c'] = [('c','a')]
-automata3.start = 'a'
-automata3.end = 'c'
-sc1.funchk(automata3)
-sc1.csymtonulllong(automata3)
-automata = sc3.joinver1(automata,automata3)
-#sg.printgraph(automata,'output2')
 
-automata.rename()
-automata.printauto()
 sg.printgraph(automata,'output2')
 '''
 

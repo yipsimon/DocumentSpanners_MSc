@@ -13,13 +13,16 @@ automata = sc2.main(regex)
 string = 'aaa'
 #sg.printgraph(automata,'tes')
 '''
-string = 'a'*30
+string = 'a'*3
 automata = sc3.stringequality(string)
-sys.exit(1)
+
+
+#automata.tostr4()
+'''
 sc1.funchk(automata)
 sc1.csymtonulllong(automata)
 #sg.printgraph(automata,'tes2')
-
+sys.exit(1)
 
 finalgraph = sc1.generateAg(automata,string)
 automata.printauto()
@@ -36,8 +39,6 @@ sg.printrawgraph(outputgraph,outputendnode,'output')
 outputs = sc1.calcresults(finalgraph, len(string), automata.varconfig)
 sc1.printresultsv2(outputs,automata)
 sys.exit(1)
-
-'''
 
 cond = '(.*)'
 

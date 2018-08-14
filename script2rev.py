@@ -99,6 +99,22 @@ class automata():
 		self.start = str(self.start)
 		self.end = str(self.end)
 
+	def tostr4(self):
+		temp = {}
+		for key, items in self.transition.items():
+			temp[str(key)] = []
+			for item in items:
+				nitem = (str(item[0]),str(item[1]))
+				temp[str(key)].append(nitem)
+		
+		self.transition = temp
+		temp2 = []
+		for item in self.states:
+			temp2.append(str(item))
+		self.states = temp2
+		self.start = str(self.start)
+		self.end = str(self.end)
+
 	def rename(self):
 		ref = {}
 		ref[str(self.start)] = 0
@@ -151,16 +167,16 @@ class automata():
 	def renumber3(self,num):
 		self.start += num
 		self.end += num
-		temp = set([])
+		temp = []
 		for nodes in self.states:
 			num1 = int(nodes)+num
-			temp.add(num1)
+			temp.append(num1)
 		self.states = temp
 		self.lastnum = num1
 		temp = {}
 		for key, item in self.transition.items():
 			#temp[int(key)+num] = set([])
-			if key == 0:
+			if isinstance(item,list):
 				for tup in item:
 					#print(tup)
 					ntup = (int(tup[0])+num,tup[1])
@@ -168,6 +184,35 @@ class automata():
 			elif item != '':
 				nitem = (int(item[0])+num,item[1])
 				temp[int(key)+num] = nitem
+		self.transition = temp
+
+	def renumber5(self,num):
+		self.start += num
+		self.end += num
+		self.last += num
+		temp = {}
+		for key, items in self.transition.items():
+			temp[int(key)+num] = []
+			for item in items:
+				nitem = (int(item[0])+num,item[1])
+				temp[int(key)+num].append(nitem)
+		self.transition = temp
+
+	def renumber6(self,num):
+		self.start += num
+		self.end += num
+		self.last += num
+		temp = {}
+		for key, items in self.transition.items():
+			if isinstance(items, list):
+				temp[int(key)+num] = []
+				for item in items:
+					nitem = (int(item[0])+num,item[1])
+					temp[int(key)+num].append(nitem)
+			else:
+				nitem = (int(items[0])+num,items[1])
+				temp[int(key)+num] = nitem
+
 		self.transition = temp
 		
 	def renumber(self,num):
@@ -177,6 +222,23 @@ class automata():
 		for nodes in self.states:
 			num1 = int(nodes)+num
 			temp.add(num1)
+		self.states = temp
+		self.lastnum = num1
+		temp = {}
+		for key, item in self.transition.items():
+			temp[int(key)+num] = []
+			for tup in item:
+				ntup = (tup[0]+num,tup[1])
+				temp[int(key)+num].append(ntup)
+		self.transition = temp
+
+	def renumber4(self,num):
+		self.start += num
+		self.end += num
+		temp = []
+		for nodes in self.states:
+			num1 = int(nodes)+num
+			temp.append(num1)
 		self.states = temp
 		self.lastnum = num1
 		temp = {}

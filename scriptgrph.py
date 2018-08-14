@@ -53,7 +53,7 @@ def printgraph3(auto,name):
 	g.attr('node', shape='circle')
 	edges = []
 	for key, item in auto.transition.items():
-		if key == '0':
+		if isinstance(item,list):
 			for line in item:
 				if line[1] == '[epsi]':
 					value = '&epsilon;'

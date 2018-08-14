@@ -273,52 +273,69 @@ def ifnotlv7(table,key):
 	if not key in table:
 		table[key] = []
 
-def createauto(item,string,varstates):
+def createauto(item,string,varstates,inode):
 	auto = sc2.automata(0,0,0)
 	auto.reset()
 	auto.varstates.extend(varstates)
-	auto.states.add(0)
-	node = 0
+	auto.start = inode
+	#auto.states = []
+	#auto.states.append(0)
+	#auto.states.add(0)
+	node = inode
 	maxmum = item[0]+item[1]
 	if (item[0]+item[2]) > maxmum:
 		maxmum = item[0]+item[2]
 	breaking = 0
+
+
 	for i in range(1,len(string)+2):
 		if i == item[1]:
-			ifnotlv7(auto.transition,node)
-			auto.transition[node].append((node+1,'x+'))
-			auto.states.add(node+1)
+			auto.transition[str(node)] = (str(node+1),'x+')
+			#auto.transition[node].append((node+1,'x+'))
+			#auto.states.append(node+1)
+			#auto.states.add(node+1)
 			node += 1
 		if i == item[2]:
-			ifnotlv7(auto.transition,node)
-			auto.transition[node].append((node+1,'y+'))
-			auto.states.add(node+1)
+			#ifnotlv7(auto.transition,node)
+			auto.transition[str(node)] = (str(node+1),'y+')
+			#auto.transition[node].append((node+1,'y+'))
+			#auto.states.append(node+1)
+			#auto.states.add(node+1)
 			node += 1
 		if i == (item[0]+item[1]):
-			ifnotlv7(auto.transition,node)
-			auto.transition[node].append((node+1,'x-'))
-			auto.states.add(node+1)
+			#ifnotlv7(auto.transition,node)
+			auto.transition[str(node)] = (str(node+1),'x-')
+			#auto.transition[node].append((node+1,'x-'))
+			#auto.states.append(node+1)
+			#auto.states.add(node+1)
 			node += 1
 		if i == (item[0]+item[2]):
-			ifnotlv7(auto.transition,node)
-			auto.transition[node].append((node+1,'y-'))
-			auto.states.add(node+1)
+			#ifnotlv7(auto.transition,node)
+			auto.transition[str(node)] = (str(node+1),'y-')
+			#auto.transition[node].append((node+1,'y-'))
+			#auto.states.add(node+1)
 			node += 1
 		if i == maxmum and i < (len(string)+1):
-			ifnotlv7(auto.transition,node)
-			auto.transition[node].append((node,'(.)'))
-			auto.transition[node].append((node+1,'(.)'))
-			ifnotlv7(auto.transition,node+1)
-			auto.states.add(node+1)
+			#ifnotlv7(auto.transition,node)
+			auto.transition[str(node)] = [(str(node),'(.)'),(str(node+1),'(.)')]
+			auto.transition[str(node+1)] = []
+			#auto.transition[node].append((node,'(.)'))
+			#auto.transition[node].append((node+1,'(.)'))
+			#ifnotlv7(auto.transition,node+1)
+			#auto.states.append(node+1)
+			#auto.states.add(node+1)
 			breaking = 1
 			break
 		elif i == len(string)+1:
-			ifnotlv7(auto.transition,node)
+			#ifnotlv7(auto.transition,node)
+			auto.transition[str(node)] = []
 			#node += 1
 		else:
-			ifnotlv7(auto.transition,node)
-			auto.transition[node].append((node+1,string[i-1]))
-			auto.states.add(node+1)
+			#ifnotlv7(auto.transition,node)
+			auto.transition[str(node)] = (str(node+1),string[i-1])
+			#auto.transition[node].append((node+1,string[i-1]))
+			#auto.states.append(node+1)
+			#auto.states.add(node+1)
 			node += 1
 	if breaking == 1:
 		auto.end = node+1
@@ -328,12 +345,17 @@ def createauto(item,string,varstates):
 		auto.last = node
 	#print('node',node)
 	#print('autocreate',auto.transition)
-	#auto.transition[node+1] = []
+	temp = auto.transition[str(inode)]
+	auto.transition[str(inode)] = [temp]
 
 	return auto, node, breaking
  
 def combinationauto(mainauto,maindest,mainshortcut,item,string,varstates):
-	auto, dest, shortcut = createauto(item,string,varstates)
+	auto, dest, shortcut = createauto(item,string,varstates,mainauto.last)
+	#auto.printauto()
+	#print('md',maindest)
+	#print('d',dest)
+	
 	#print('mainauto',mainauto.transition)
 	#print('maindest',maindest)
 	#print('mainshortcut',mainshortcut)
@@ -342,68 +364,119 @@ def combinationauto(mainauto,maindest,mainshortcut,item,string,varstates):
 	#print('shortcut',shortcut)
 	if shortcut == 1 and mainshortcut == 1:
 		#print ('mode 1')
-		lastedge = auto.transition[dest-1][0]
+		lastedge = auto.transition[str(dest-1)]
 		#print('lastedge',lastedge)
-		for i in range(auto.end,dest-2,-1):
-			del auto.transition[i]
-			auto.states.remove(i)
-		auto.transition[dest-1] = []
-		auto.states.add(dest-1)
+
+		#for i in range(auto.end,dest-2,-1):
+			#auto.transition[i] = []
+			#auto.states.remove(i)
+		auto.transition[str(dest-1)] = (str(maindest),lastedge[1])
+		
+		#auto.states.append(dest-1)
 		#print('beforeauto',auto.transition)
 		auto.end = dest-1
-		auto.renumber(mainauto.last)
-		mainauto.states = mainauto.states | auto.states
+		mainauto.transition[str(mainauto.start)].extend(auto.transition[str(auto.start)])
+		#auto.renumber6(mainauto.last)
+		for key in range(mainauto.last+1,auto.end+1):
+			mainauto.transition[str(key)] = auto.transition[str(key)]
+		#mainauto.printauto()
+		#mainauto.printauto()
+		#sg.printgraph3(mainauto,'test1')
+		
+		#auto.transition[0] = mainauto.transition[0]
+		#auto.transition[0].extend(auto.transition.pop(mainauto.last))
+		#auto.printauto()
+
 		#print('afterauto',auto.transition)
-		for key, item in auto.transition.items():
+		#auto.transition[mainauto.last].extend(mainauto.transition[mainauto.start])
+		
+		#mainauto.transition.update(auto.transition)
+		#mainauto.printauto()
+		#sg.printgraph(mainauto,'test')
+		
+		#sys.exit(1)
+
+		'''
+		for key in range(mainauto.last,auto.end+1):
+			#for item in auto.transition[key]:
 			if not key in mainauto.transition:
-				mainauto.transition[key] = []
+				#mainauto.transition[key] = []
+				mainauto.states.append(key)
 			if key == auto.start:
 				#mainauto.addedge(mainauto.start,item[0],item[1])
-				mainauto.transition[mainauto.start].extend(item)
+				mainauto.transition[mainauto.start].extend(auto.transition[key])
 			else:
 				#mainauto.addedge(key,item[0],item[1])
-				mainauto.transition[key].extend(item)
+				mainauto.transition[key].extend(auto.transition[key])
 		#print('auto.end',auto.end)
 		#print('beforemainauto',mainauto.transition)
-		mainauto.transition[auto.end].append( (maindest,lastedge[1]) )
-		mainauto.states = mainauto.states | {auto.end}
+		#mainauto.transition[auto.end].append( (maindest,lastedge[1]) )
+		
+		#mainauto.states
 		#mainauto.addedge(auto.end,maindest,lastedge[1])
 		#print('automainauto',mainauto.transition)
-
+		'''
 	else:
 		#print ('mode 2')
-		lastedge = auto.transition[auto.end-1][0]
+		if shortcut == 1 and mainshortcut == 0:
+			mainshortcut = 1
+			maindest = dest
+			#print('md',maindest)
+			auto.transition[str(auto.end-1)] = [(str(dest),'(.)'),(str(mainauto.end),'(.)')]
+		else:
+			lastedge = auto.transition[str(auto.end-1)]
 		#print('lastedge',lastedge)
-		del auto.transition[auto.end]
-		auto.transition[auto.end-1] = []
-		auto.states.remove(auto.end)
-		auto.states.remove(auto.end-1)
+		#del auto.transition[auto.end]
+			auto.transition[str(auto.end-1)] = (str(mainauto.end),lastedge[1])
+			#auto.printauto()
+			#sys.exit(1)
+		
+		
+		#auto.states.remove(auto.end)
+		#auto.states.remove(auto.end-1)
 		#print('beforeauto',auto.transition)
 		auto.end = auto.end-1
-		auto.renumber(mainauto.last)
-		mainauto.states = mainauto.states | auto.states
+		#auto.renumber6(mainauto.last)
+		#mainauto.states = mainauto.states | auto.states
 		#print('afterauto',auto.transition)
-		for key, item in auto.transition.items():
+		#auto.transition[mainauto.last].extend(mainauto.transition[mainauto.start])
+		#mainauto.transition.update(auto.transition)
+		mainauto.transition[str(mainauto.start)].extend(auto.transition[str(auto.start)])
+		for key in range(mainauto.last+1,auto.end+1):
+			mainauto.transition[str(key)] = auto.transition[str(key)]
+		#mainauto.printauto()
+
+		#sg.printgraph3(mainauto,'test2')
+		
+		#sg.printgraph(mainauto,'test2')
+		
+		#sys.exit(1)		
+		'''
+		for key in range(mainauto.last,auto.end+1):
+			#for item in auto.transition[key]:
 			if not key in mainauto.transition:
-				mainauto.transition[key] = []
+				#mainauto.transition[key] = []
+				mainauto.states.append(key)
 			if key == auto.start:
 				#mainauto.addedge(mainauto.start,item[0],item[1])
-				mainauto.transition[mainauto.start].extend(item)
+				mainauto.transition[mainauto.start].extend(auto.transition[key])
 			else:
 				#mainauto.addedge(key,item[0],item[1])
-				mainauto.transition[key].extend(item)
+				mainauto.transition[key] = auto.transition[key]
 		#print('auto.end',auto.end)
 		#print('beforemainauto',mainauto.transition)
-		mainauto.transition[auto.end].append( (mainauto.end,lastedge[1]) )
-		mainauto.states = mainauto.states | {auto.end}
+		#mainauto.transition[auto.end].append( (mainauto.end,lastedge[1]) )
+		#mainauto.states = mainauto.states | {auto.end}
 		#mainauto.addedge(auto.end,mainauto.end,lastedge[1])
 		#print('aftermainauto',mainauto.transition)
+		'''
 
-	if shortcut == 1 and mainshortcut == 0:
-		mainshortcut = 1
-		maindest = dest+mainauto.last
+	
 
 	mainauto.last = auto.end
+	
+	
+
 	#time.sleep(10)
 	#mainauto.printauto()
 	return mainauto, maindest, mainshortcut
@@ -413,19 +486,22 @@ def stringequality(string,start=1,end=-1):
 	count = 0
 	#if end == -1:
 	#	end = len(string)+2
+	
 	for i in range(1,len(string)+2):
 		for j in range(1,len(string)+2-i):
 			for k in range(1,len(string)+2-i):
 				if string[j-1:j+i-1] == string[k-1:k+i-1]:
 					if count == 0:
-						autostring, deststring, shortcut = createauto((i,j,k),string,['x','y'])	
+						autostring, deststring, shortcut = createauto((i,j,k),string,['x','y'],0)	
 					else:
 						autostring,deststring,shortcut = combinationauto(autostring,deststring,shortcut,(i,j,k),string,['x','y'])
 					#listoftup.append((i,j,k))
 					count += 1
+	
 	#print(listoftup)
 	#print(len(listoftup))
-	print(count)
+	print('count',count)
+	print('nodeused',autostring.last)
 	#print('listoftup mem',sys.getsizeof(listoftup))
 	'''
 	autostring, deststring, shortcut = createauto(listoftup[0],string,['x','y'])	
@@ -434,12 +510,14 @@ def stringequality(string,start=1,end=-1):
 		autostring,deststring,shortcut = combinationauto(autostring,deststring,shortcut,listoftup[i],string,['x','y'])
 		#sg.printgraph(autostring,str(i))
 	'''
-	autostring.tostr()
-	autostring.start = str(autostring.start)
-	autostring.end = str(autostring.end)
+
 	#autostring.printauto()
-	print(len(autostring.states))
-	#sg.printgraph(autostring,'final')
+	
+	
+	#sys.exit(1)
+	
+	#print(len(autostring.states))
+	#sg.printgraph3(autostring,'final')
 	#finallist, key, varedges = sc1.funchk(autostring)
 	#finallist, key = functionalcheck(autostring)
 	'''
