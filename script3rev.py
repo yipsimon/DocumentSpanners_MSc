@@ -585,7 +585,9 @@ def union(auto1,auto2):
 		auto1.addedge(auto2.end,auto1.last,'[epsi]')
 		auto1.addedge(0,1,'[epsi]')
 		auto1.addedge(0,auto2.start,'[epsi]')
-
+		auto1.states = set([])
+		for i in range(auto1.last):
+			auto1.states.add(str(i))
 
 		for item in auto2.varstates:
 			if item not in auto1.varstates:
@@ -598,6 +600,23 @@ def union(auto1,auto2):
 		
 		auto1.tostr()
 		auto1.printauto()
+
+def concat(auto1,auto2):
+	auto1.rename2()
+	auto2.rename2()
+	auto2.renumber(int(auto1.last+1))
+	auto1.addedge(auto1.end,auto1.last+1,'[epsi]')
+	for key, item in auto2.transition.items():
+		if not key in auto1.transition:
+			auto1.transition[key] = []
+		auto1.transition[key].extend(item)
+	auto1.end = auto2.end
+	auto1.last = auto2.last
+	auto1.tostr()
+	auto1.printauto()
+
+
+
 
 '''
 auto1, dest1, shortcut = createauto((1,1,1),'abc',['x','y'])

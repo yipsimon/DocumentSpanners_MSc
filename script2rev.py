@@ -160,6 +160,7 @@ class automata():
 		print(ref)
 		self.start = ref[str(self.start)]
 		self.end = ref[str(self.end)]
+		self.last = self.end
 		print(self.start)
 		print(self.end)
 		

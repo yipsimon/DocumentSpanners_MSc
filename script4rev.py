@@ -29,7 +29,7 @@ automata1.end = '4'
 automata2.start = 'A'
 automata2.end = 'E'
 
-sc3.union(automata1,automata2)
+sc3.concat(automata1,automata2)
 sg.printgraph(automata1,'test3')
 sys.exit(1)
 string = 'a'*3
