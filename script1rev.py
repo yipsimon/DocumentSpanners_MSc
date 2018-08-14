@@ -216,12 +216,12 @@ def generateAg(auto,text):
 		seenlist.add(item)
 		for tup in auto.transition[item]:
 			
-			if tup[1] == text[0]:
-			#if tup[1] != '[epsi]':
-				#matching = re.match(tup[1],text[0])
-				#if matching:
-				nxsetnodes.add(item)
-				finalgraph[-1]['0'].add(item)
+			#if tup[1] == text[0]:
+			if tup[1] != '[epsi]':
+				matching = re.match(tup[1],text[0])
+				if matching:
+					nxsetnodes.add(item)
+					finalgraph[-1]['0'].add(item)
 			if tup[1] == '[epsi]' and ({str(tup[1])} not in seenlist):
 				tochecklist.add(str(tup[0]))
 	
@@ -239,22 +239,22 @@ def generateAg(auto,text):
 			for edge in auto.transition[currentnode]:
 				print('edge',edge)
 
-				if edge[1] == text[i] or edge[1] == '[sum]':
-				#if edge[1] != '[epsi]':
+				#if edge[1] == text[i] or edge[1] == '[sum]':
+				if edge[1] != '[epsi]':
 					#print(edge[1])
 					#time.sleep(2)
-					#matching = re.match(edge[1],text[i])
-					#print('foundmatch')
-					#if matching:
-					if i == len(text)-1:
-						if edge[0] == str(auto.end):
+					matching = re.match(edge[1],text[i])
+					print('foundmatch')
+					if matching:
+						if i == len(text)-1:
+							if edge[0] == str(auto.end):
+								ifnotlv3(finalgraph, i, currentnode)
+								finalgraph[i][currentnode].add(edge[0])	
+						else:
 							ifnotlv3(finalgraph, i, currentnode)
-							finalgraph[i][currentnode].add(edge[0])	
-					else:
-						ifnotlv3(finalgraph, i, currentnode)
-						finalgraph[i][currentnode].add(edge[0])
+							finalgraph[i][currentnode].add(edge[0])
 
-					extratodo.add(edge[0])
+						extratodo.add(edge[0])
 				elif edge[1] == '[epsi]' and auto.varconfig[currentnode] == auto.varconfig[edge[0]]:
 					ifnotlv3(finalgraph, i, currentnode)
 					foundepsilon(auto,finalgraph,currentnode,edge[0],text,i,extratodo)
@@ -386,10 +386,12 @@ def printresultsv2(listofoutputs,auto):
 	tempkey = {}
 	for item in auto.varstates:
 		tempkey[str(item)] = []
+		
 
 	for i in range(len(listofoutputs)):
 		key1[i] = listofoutputs[i]
 		key3[i] = {}
+		key2[i] = {}
 
 	print(key1)
 	print(key3)
@@ -397,6 +399,7 @@ def printresultsv2(listofoutputs,auto):
 
 	for i in range(len(listofoutputs)):
 		jend = 0
+		tempkey2 = []
 		for j in range(len(listofoutputs[i])):
 			print('j',j)
 			if jend == 1:
@@ -409,27 +412,34 @@ def printresultsv2(listofoutputs,auto):
 					if listofoutputs[i][j][k] == 'o':
 						if j == 0:
 							tempkey[auto.varstates[k]].append(j+1)
+							tempkey2.append(auto.varstates[k]+'+')
 							print('results1')
 						else:
 							if listofoutputs[i][j-1][k] != listofoutputs[i][j][k]:
 								tempkey[auto.varstates[k]].append(j+1)
+								tempkey2.append(auto.varstates[k]+'+')
 								print('results2')
 					elif listofoutputs[i][j][k] == 'c':
 						if j == 0:
 							tempkey[auto.varstates[k]].append(j+1)
 							tempkey[auto.varstates[k]].append(j+1)
+							tempkey2.append(auto.varstates[k]+'-')
 							print('results3')
 						else:
 							if listofoutputs[i][j-1][k] != listofoutputs[i][j][k]:
 								tempkey[auto.varstates[k]].append(j+1)
+								tempkey2.append(auto.varstates[k]+'-')
 								if len(tempkey[auto.varstates[k]]) == 1:
 									tempkey[auto.varstates[k]].append(j+1)
+									tempkey2.append(auto.varstates[k]+'-')
 								print('results4')
-
+			if j != len(listofoutputs[i])-1:
+				tempkey2.append('a')
 		for key, item in tempkey.items():
 			tempkey[key] = tuple(item)
 		print(tempkey)
 		key3[i] = copy.deepcopy(tempkey)
+		key2[i] = copy.deepcopy(tempkey2)
 		print(key3)
 		for item in auto.varstates:
 			tempkey[str(item)] = []
@@ -440,14 +450,14 @@ def printresultsv2(listofoutputs,auto):
 
 
 	tab = txttab.Texttable()
-	headings = ['ConfigVariable']
+	headings = ['No.','String','ConfigVariable']
 	for v in range(len(auto.varstates)):
 		headings.append(auto.varstates[v])
 
 	tab.header(headings)
 	for i in range(len(listofoutputs)):
 		#print (' config variables: ', key1[i])
-		temp = [key1[i]]
+		temp = [i,key2[i],key1[i]]
 		for v in range(len(auto.varstates)):
 			temp.append(key3[i][auto.varstates[v]])
 		tab.add_row(temp)
