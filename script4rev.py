@@ -28,6 +28,10 @@ automata1.start = '0'
 automata1.end = '4'
 automata2.start = 'A'
 automata2.end = 'E'
+
+#sc3.union(automata1,automata2)
+#automata1.printgraph()
+#sys.exit(1)
 string = 'a'*3
 sc1.funchk(automata1)
 sc1.csymtonulllong(automata1)
@@ -37,10 +41,16 @@ sc1.csymtonulllong(automata2)
 #automata1.printauto()
 automata = sc3.joinver1(automata1,automata2)
 automata.printauto()
-
 automata.rename()
-sg.printgraphconfig(automata,automata.varconfig,'test')
+#sg.printgraphconfig(automata,automata.varconfig,'test1')
 
+automata3 = sc3.stringequality(string,2,3)
+sc1.funchk(automata3)
+sc1.csymtonulllong(automata3)
+automata = sc3.joinver1(automata,automata3)
+#sg.printgraphconfig(automata,automata.varconfig,'test2')
+automata.rename()
+'''
 automata3 = sc2.automata(0,0,0)
 automata3.reset()
 automata3.states = automata3.states | {'a','b','c'}
@@ -54,9 +64,10 @@ sc1.funchk(automata3)
 sc1.csymtonulllong(automata3)
 automata = sc3.joinver1(automata,automata3)
 sg.printgraph(automata,'output2')
-
+sys.exit(1)
 automata.rename()
 automata.printauto()
+'''
 '''
 automata = automata1
 
@@ -104,7 +115,7 @@ finalgraph = sc1.generateAg(automata,string)
 #automata.printauto()
 
 outputgraph, outputendnode = sc1.finalauto(automata,finalgraph)
-sg.printrawgraph(outputgraph,outputendnode,'output')
+#sg.printrawgraph(outputgraph,outputendnode,'output')
 #automata = sc3.projectionver1(automata,string,['x','z'])
 
 outputs = sc1.calcresults(finalgraph, len(string), automata.varconfig)

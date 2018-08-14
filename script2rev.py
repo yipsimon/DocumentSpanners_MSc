@@ -228,7 +228,7 @@ class automata():
 		for key, item in self.transition.items():
 			temp[int(key)+num] = []
 			for tup in item:
-				ntup = (tup[0]+num,tup[1])
+				ntup = (int(tup[0])+num,tup[1])
 				temp[int(key)+num].append(ntup)
 		self.transition = temp
 

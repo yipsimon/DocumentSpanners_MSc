@@ -216,9 +216,10 @@ def joinver1(auto1,auto2):
 					dest = (edge1[0],edge2[0])
 					checklegal(auto,keytemp,auto1,auto2,seen,dest,template,currentnode,finallist,edge1[1],todo,done,key3)
 				else:
-					dest = (edge1[0],edge2[0])
-					value = '(?='+edge1[1]+')(?='+edge2[1]+')'
-					checklegal(auto,keytemp,auto1,auto2,seen,dest,template,currentnode,finallist,value,todo,done,key3)
+					if edge1[1] != '[epsi]' and edge2[1] != '[epsi]':
+						dest = (edge1[0],edge2[0])
+						value = '(?='+edge1[1]+')(?='+edge2[1]+')'
+						checklegal(auto,keytemp,auto1,auto2,seen,dest,template,currentnode,finallist,value,todo,done,key3)
 
 			if edge1[1] == '[epsi]':
 				dest = (edge1[0],currentnode[1])
@@ -263,7 +264,7 @@ def joinver1(auto1,auto2):
 	auto.varconfig = finallist
 	auto.key = key3
 	#sg.printgraph(auto,'final2')
-	addepsilon(auto)
+	#addepsilon(auto)
 	#auto.printauto()
 	#sys.exit(1)
 	return auto
@@ -484,10 +485,10 @@ def combinationauto(mainauto,maindest,mainshortcut,item,string,varstates):
 def stringequality(string,start=1,end=-1):
 	#listoftup = []
 	count = 0
-	#if end == -1:
-	#	end = len(string)+2
+	if end == -1:
+		end = len(string)+2
 	
-	for i in range(1,len(string)+2):
+	for i in range(start,end):
 		for j in range(1,len(string)+2-i):
 			for k in range(1,len(string)+2-i):
 				if string[j-1:j+i-1] == string[k-1:k+i-1]:
@@ -512,7 +513,19 @@ def stringequality(string,start=1,end=-1):
 	'''
 
 	#autostring.printauto()
-	
+	autostring.start = str(autostring.start)
+	autostring.end = str(autostring.end)
+	autostring.states = []
+	for i in range(autostring.last+1):
+		autostring.states.append(str(i))
+
+	for key, items in autostring.transition.items():
+		if not isinstance(items, list):
+			autostring.transition[key] = [items]
+
+
+	#autostring.printauto()
+	print('ok2')
 	
 	#sys.exit(1)
 	
@@ -545,6 +558,47 @@ def stringequality(string,start=1,end=-1):
 
 	return autostring
 
+def union(auto1,auto2):
+		auto1.rename()
+		auto2.rename()
+		#auto1.start = int(auto1.start)
+		#auto1.end = int(auto1.end)
+		#auto2.start = int(auto2.start)
+		#auto2.end = int(auto2.end)
+		'''
+		self.renumber(1)
+		self.start = 0
+		auto1.renumber(self.end+1)
+		lastnode = auto1.end+1
+		self.addedge(self.end,lastnode,'[epsi]')
+		self.addedge(auto1.end,lastnode,'[epsi]')
+		self.addedge(0,1,'[epsi]')
+		self.addedge(0,auto1.start,'[epsi]')
+		'''
+		sg.printgraph(auto1,'text0')
+		sg.printgraph(auto1,'text1')
+		auto2.renumber(int(auto1.end))
+
+		sys.exit(1)
+
+
+		for item in auto2.varstates:
+			if item not in auto1.varstates:
+				auto1.varstates.append(item)
+		for key, item in auto2.transition.items():
+			if not key in auto1.transition:
+				auto1.transition[key] = []
+			if key == str(auto2.start):
+				auto1.transition[str(auto1.start)].extend(item)
+			else:
+				auto1.transition[key].extend(item)
+		
+		lastnode = auto2.end+1
+		auto1.addedge(auto1.end,lastnode,'[epsi]')
+		auto1.addedge(auto1.end,lastnode,'[epsi]')
+		auto1.states = auto1.states | auto1.states
+		auto1.last = lastnode
+		#self.printauto()
 
 '''
 auto1, dest1, shortcut = createauto((1,1,1),'abc',['x','y'])
