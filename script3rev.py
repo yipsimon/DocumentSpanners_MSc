@@ -559,8 +559,8 @@ def stringequality(string,start=1,end=-1):
 	return autostring
 
 def union(auto1,auto2):
-		auto1.rename()
-		auto2.rename()
+		auto1.rename2()
+		auto2.rename2()
 		#auto1.start = int(auto1.start)
 		#auto1.end = int(auto1.end)
 		#auto2.start = int(auto2.start)
@@ -575,30 +575,29 @@ def union(auto1,auto2):
 		self.addedge(0,1,'[epsi]')
 		self.addedge(0,auto1.start,'[epsi]')
 		'''
+		
+		auto1.renumber(int(1))
+		auto2.renumber(int(auto1.end+1))
+		auto1.last = auto2.end+1
 		sg.printgraph(auto1,'text0')
-		sg.printgraph(auto1,'text1')
-		auto2.renumber(int(auto1.end))
-
-		sys.exit(1)
+		sg.printgraph(auto2,'text1')
+		auto1.addedge(auto1.end,auto1.last,'[epsi]')
+		auto1.addedge(auto2.end,auto1.last,'[epsi]')
+		auto1.addedge(0,1,'[epsi]')
+		auto1.addedge(0,auto2.start,'[epsi]')
 
 
 		for item in auto2.varstates:
 			if item not in auto1.varstates:
 				auto1.varstates.append(item)
+		
 		for key, item in auto2.transition.items():
 			if not key in auto1.transition:
 				auto1.transition[key] = []
-			if key == str(auto2.start):
-				auto1.transition[str(auto1.start)].extend(item)
-			else:
-				auto1.transition[key].extend(item)
+			auto1.transition[key].extend(item)
 		
-		lastnode = auto2.end+1
-		auto1.addedge(auto1.end,lastnode,'[epsi]')
-		auto1.addedge(auto1.end,lastnode,'[epsi]')
-		auto1.states = auto1.states | auto1.states
-		auto1.last = lastnode
-		#self.printauto()
+		auto1.tostr()
+		auto1.printauto()
 
 '''
 auto1, dest1, shortcut = createauto((1,1,1),'abc',['x','y'])

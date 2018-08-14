@@ -147,6 +147,42 @@ class automata():
 			print(temp)
 			self.transition[str(ref[begin])] = copy.deepcopy(temp)
 
+
+	def rename2(self):
+		ref = {}
+		ref[str(self.start)] = 0
+		i = 1
+		for node in self.states:
+			if node != str(self.start) and node != str(self.end):
+				ref[str(node)] = i
+				i += 1
+		ref[str(self.end)] = i
+		print(ref)
+		self.start = ref[str(self.start)]
+		self.end = ref[str(self.end)]
+		print(self.start)
+		print(self.end)
+		
+		self.last = i
+		self.states = set([])
+		for node in range(i+1):
+			self.states.add(str(node))
+		for name in list(self.varconfig.keys()):
+			temp2 = self.varconfig[name]
+			del self.varconfig[name]
+			self.varconfig[str(ref[name])] = copy.deepcopy(temp2)
+
+		temptran = {}
+		for begin in list(self.transition.keys()):
+			temp = []
+			for tup in self.transition[begin]:
+				print(tup)
+				temp.append( (ref[str(tup[0])],tup[1]) )
+			#del self.transition[begin]
+			#print(temp)
+			temptran[ref[begin]] = copy.deepcopy(temp)
+		self.transition = temptran
+
 	def renumber2(self,num):
 		self.start += num
 		self.end += num

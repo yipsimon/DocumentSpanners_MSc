@@ -29,9 +29,9 @@ automata1.end = '4'
 automata2.start = 'A'
 automata2.end = 'E'
 
-#sc3.union(automata1,automata2)
-#automata1.printgraph()
-#sys.exit(1)
+sc3.union(automata1,automata2)
+sg.printgraph(automata1,'test3')
+sys.exit(1)
 string = 'a'*3
 sc1.funchk(automata1)
 sc1.csymtonulllong(automata1)
