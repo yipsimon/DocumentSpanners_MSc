@@ -616,6 +616,45 @@ def concat(auto1,auto2):
 	auto1.printauto()
 
 
+def alpha(listings):
+	auto = sc2.automata(0,0,0)
+	auto.reset()
+	auto.start = 0
+	auto.varstates = ['x']
+	auto.transition[str(0)] = [(str(0),'(.)'),(str(1),'x+')]
+	auto.transition[str(1)] = []
+	auto.last = 1
+	for k in range(len(listings)):
+		for i in range(len(listings[k])):
+			if i == 0: 
+				auto.last += 1
+				auto.transition[str(1)].append((str(auto.last),listings[k][i]))
+			elif i == len(listings[k])-1 and k != 0:
+				auto.transition[str(auto.last)] = [(str(converging),listings[k][i])]
+			else:
+				auto.transition[str(auto.last)] = [(str(auto.last+1),listings[k][i])]
+				auto.last += 1
+
+		if k == 0:
+			converging = auto.last
+			auto.last += 1
+			auto.end = auto.last
+			auto.last += 1
+			auto.transition[str(converging)] = [(str(auto.end),'x-')]
+
+	auto.transition[str(auto.end)] = [(str(auto.end),'(.)')]
+	for i in range(auto.last+1):
+		auto.states.add(str(i))
+
+	return auto
+
+
+
+
+
+
+
+
 
 
 '''

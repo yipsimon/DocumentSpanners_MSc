@@ -6,6 +6,12 @@ import threading, time, sys, copy, objgraph, random, inspect
 
 start_time = time.time()
 
+#listings = ['hello','happy','world']
+#test = sc3.alpha(listings)
+#sg.printgraph(test,'t')
+#sys.exit(1)
+
+
 automata1 = sc2.automata(0,0,0)
 automata2 = sc2.automata(0,0,0)
 automata1.reset()
@@ -29,9 +35,9 @@ automata1.end = '4'
 automata2.start = 'A'
 automata2.end = 'E'
 
-sc3.concat(automata1,automata2)
-sg.printgraph(automata1,'test3')
-sys.exit(1)
+#sc3.concat(automata1,automata2)
+#sg.printgraph(automata1,'test3')
+#sys.exit(1)
 string = 'a'*3
 sc1.funchk(automata1)
 sc1.csymtonulllong(automata1)
@@ -44,7 +50,7 @@ automata.printauto()
 automata.rename()
 #sg.printgraphconfig(automata,automata.varconfig,'test1')
 
-automata3 = sc3.stringequality(string,2,3)
+automata3 = sc3.stringequality(string,1,4)
 sc1.funchk(automata3)
 sc1.csymtonulllong(automata3)
 automata = sc3.joinver1(automata,automata3)

@@ -13,7 +13,7 @@ automata = sc2.main(regex)
 string = 'aaa'
 #sg.printgraph(automata,'tes')
 '''
-string = 'a'*3
+string = 'a'*70
 automata = sc3.stringequality(string)
 
 
