@@ -5,7 +5,25 @@ import script1rev as sc1
 import threading, time, sys, copy, objgraph, random, inspect, re
 
 start_time = time.time()
-
+'''
+automata1 = sc2.automata(0,0,0)
+automata1.reset()
+automata1.states = ['0','1','2','3','4','5','6','7','8','9']
+automata1.varstates = ['x']
+automata1.transition['0'] = [('0','(.)'),('1','x+')]
+automata1.transition['1'] = [('1','[0-9]'),('2','[0-9]')]
+automata1.transition['2'] = [('3','.')]
+automata1.transition['3'] = [('3','[0-9]'),('4','[0-9]')]
+automata1.transition['4'] = [('5','.')]
+automata1.transition['5'] = [('5','[0-9]'),('6','[0-9]')]
+automata1.transition['6'] = [('7','.')]
+automata1.transition['7'] = [('7','[0-9]'),('8','[0-9]')]
+automata1.transition['8'] = [('9','x-')]
+automata1.transition['9'] = [('9','(.)')]
+automata1.start = '0'
+automata1.end = '9'
+automata1.last = 9
+'''
 automata1 = sc2.automata(0,0,0)
 automata1.reset()
 automata1.states = ['0','1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17']
@@ -31,7 +49,6 @@ automata1.transition['17'] = [('17','(.)')]
 automata1.start = '0'
 automata1.end = '17'
 automata1.last = 17
-
 sc1.funchk(automata1)
 sc1.csymtonulllong(automata1)
 
@@ -68,10 +85,10 @@ for i in range(12,13):
 print (count)
 #print("--- %s seconds ---" % (time.time() - start_time))
 #start_time = time.time()
-
+'''
 for item in stor:
 	print (repr(item))
-
+'''
 autostring.start = str(autostring.start)
 autostring.end = str(autostring.end)
 autostring.states = []
@@ -88,7 +105,7 @@ autostring.tostr()
 sc1.funchk(autostring)
 sc1.csymtonulllong(autostring)
 #sg.printgraphconfig(autostring,autostring.varconfig,'test1')
-sys.exit(1)
+#sys.exit(1)
 automata = sc3.joinver1(automata1,autostring)
 #print("--- %s seconds ---" % (time.time() - start_time))
 #start_time = time.time()

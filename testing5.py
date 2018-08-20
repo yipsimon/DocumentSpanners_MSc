@@ -53,21 +53,28 @@ automata1.last = 17
 
 sc1.funchk(automata1)
 sc1.csymtonulllong(automata1)
-sg.printgraph(automata1,'test00')
+#sg.printgraph(automata1,'test00')
 
 f = open('access_log2', 'r')
 string = f.read()
 f.close()
-
-string, automata = sc3.stringequality(string,1,7,16)
+condits = [(lambda s,i,j: s[j-1:j] in ['0','1','2','3','4','5','6','7','8','9'], 'true'),(lambda s,i,j: s[j+i-2:j+i-1] in ['0','1','2','3','4','5','6','7','8','9'], 'true')] #,(lambda i: i % 7 == 0, "seven")]
+string, automata = sc3.stringequality(string,1,7,16,condits)
+print('stringdone') #long
 
 sc1.funchk(automata)
+print('functionchkdone') #long
 sc1.csymtonulllong(automata)
+print('tonulldone')
 automata = sc3.joinver1(automata,automata1)
-
+print('joindone')	#long
+print('autonodes:',automata.last)
 finalgraph = sc1.generateAg(automata,string)
+print('Agdone')	#very long
 outputgraph, outputendnode = sc1.finalauto(automata,finalgraph)
+print('outputdone')
 outputs = sc1.calcresults(finalgraph, len(string), automata.varconfig)
+print('calcdone')
 sc1.printresultsv2(outputs,automata,string)
 
 

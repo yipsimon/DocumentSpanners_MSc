@@ -237,16 +237,16 @@ def createauto(item,string,varstates,inode):
 
 	for i in range(1,len(string)+2):
 		if i == item[1]:
-			auto.transition[str(node)] = (str(node+1),'x+')
+			auto.transition[str(node)] = [(str(node+1),'x+')]
 			node += 1
 		if i == item[2]:
-			auto.transition[str(node)] = (str(node+1),'y+')
+			auto.transition[str(node)] = [(str(node+1),'y+')]
 			node += 1
 		if i == (item[0]+item[1]):
-			auto.transition[str(node)] = (str(node+1),'x-')
+			auto.transition[str(node)] = [(str(node+1),'x-')]
 			node += 1
 		if i == (item[0]+item[2]):
-			auto.transition[str(node)] = (str(node+1),'y-')
+			auto.transition[str(node)] = [(str(node+1),'y-')]
 			node += 1
 		if i == maxmum and i < (len(string)+1):
 			auto.transition[str(node)] = [(str(node),'(.)'),(str(node+1),'(.)')]
@@ -258,7 +258,7 @@ def createauto(item,string,varstates,inode):
 		else:
 			ext2 = ['\n','\r','\t']
 			if not string[i-1] in ext2:
-				auto.transition[str(node)] = (str(node+1),string[i-1])
+				auto.transition[str(node)] = [(str(node+1),string[i-1])]
 				node += 1
 
 	if breaking == 1:
@@ -268,8 +268,8 @@ def createauto(item,string,varstates,inode):
 		auto.end = node
 		auto.last = node
 
-	temp = auto.transition[str(inode)]
-	auto.transition[str(inode)] = [temp]
+	#temp = auto.transition[str(inode)]
+	#auto.transition[str(inode)] = [temp]
 
 	return auto, node, breaking
  
@@ -277,8 +277,8 @@ def combinationauto(mainauto,maindest,mainshortcut,item,string,varstates):
 	auto, dest, shortcut = createauto(item,string,varstates,mainauto.last)
 
 	if shortcut == 1 and mainshortcut == 1:
-		lastedge = auto.transition[str(dest-1)]
-		auto.transition[str(dest-1)] = (str(maindest),lastedge[1])
+		lastedge = auto.transition[str(dest-1)][0]
+		auto.transition[str(dest-1)] = [(str(maindest),lastedge[1])]
 		auto.end = dest-1
 		mainauto.transition[str(mainauto.start)].extend(auto.transition[str(auto.start)])
 		for key in range(mainauto.last+1,auto.end+1):
@@ -290,8 +290,8 @@ def combinationauto(mainauto,maindest,mainshortcut,item,string,varstates):
 			maindest = dest
 			auto.transition[str(auto.end-1)] = [(str(dest),'(.)'),(str(mainauto.end),'(.)')]
 		else:
-			lastedge = auto.transition[str(auto.end-1)]
-			auto.transition[str(auto.end-1)] = (str(mainauto.end),lastedge[1])
+			lastedge = auto.transition[str(auto.end-1)][0]
+			auto.transition[str(auto.end-1)] = [(str(mainauto.end),lastedge[1])]
 
 		auto.end = auto.end-1
 		mainauto.transition[str(mainauto.start)].extend(auto.transition[str(auto.start)])
@@ -302,7 +302,14 @@ def combinationauto(mainauto,maindest,mainshortcut,item,string,varstates):
 
 	return mainauto, maindest, mainshortcut
 
-def stringequality(string,mode,start=1,end=-1):
+
+def apply_conditions(s,i,j,conditions):
+	for cond, replace in conditions:
+		if cond(s,i,j):
+			return replace
+	return i
+
+def stringequality(string,mode,start=1,end=-1,condits=-1):
 	#listoftup = []
 	count = 0
 	if end == -1:
@@ -318,6 +325,7 @@ def stringequality(string,mode,start=1,end=-1):
 							autostring,deststring,shortcut = combinationauto(autostring,deststring,shortcut,(i,j,k),string,['x','y'])
 						count += 1
 	if mode == 1:
+		
 		for i in range(start,end):
 			for j in range(1,len(string)+2-i):
 				skip = 1
@@ -326,11 +334,18 @@ def stringequality(string,mode,start=1,end=-1):
 						if string[k+i-2:k+i-1] == '\n':
 							skip = 1
 						elif string[j-1:j+i-1] == string[k-1:k+i-1]:
-							if count == 0:
-								autostring, deststring, shortcut = createauto((i,j,k),string,['x','y'],0)	
+							if condits != -1:
+								othercond = apply_conditions(string,i,j,condits)
 							else:
-								autostring,deststring,shortcut = combinationauto(autostring,deststring,shortcut,(i,j,k),string,['x','y'])
-							count += 1
+								othercond = 'true'
+							
+							if othercond == 'true':
+							#if string[j-1:j] in ['0','1','2','3','4','5','6','7','8','9']:
+								if count == 0:
+									autostring, deststring, shortcut = createauto((i,j,k),string,['x','y'],0)	
+								else:
+									autostring,deststring,shortcut = combinationauto(autostring,deststring,shortcut,(i,j,k),string,['x','y'])
+								count += 1
 							#stor.append( (j,string[j-1:j+i-1],k,string[k-1:k+i-1]) )
 					if skip == 1:
 						if string[k-1:k] == '\n':
@@ -343,12 +358,23 @@ def stringequality(string,mode,start=1,end=-1):
 	autostring.states = []
 	for i in range(autostring.last+1):
 		autostring.states.append(str(i))
+	#autostring.printauto()
+	print('totalnodes:',autostring.last)
+	temp = {}
+	for key, items in autostring.transition.items():
+		temp[str(key)] = []
+		for item in items:
+			nitem = (str(item[0]),str(item[1]))
+			temp[str(key)].append(nitem)
 
+	autostring.transition = temp
+
+	'''
 	for key, items in autostring.transition.items():
 		if not isinstance(items, list):
 			autostring.transition[key] = [items]
-
-	autostring.tostr()
+	'''
+	#autostring.tostr() #Long
 	
 
 	return string, autostring
