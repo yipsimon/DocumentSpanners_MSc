@@ -47,20 +47,21 @@ def apply_conditions(i):
 ar = apply_conditions(6)
 print(ar)
 '''
-CONDITIONS = [(lambda i: i in ['0','1','2','3','4','5','6','7','8','9'], 1),(lambda i: i % 6 == 0, "six"),(lambda i: i % 7 == 0, "seven")]
+'''
+CONDITIONS = [(lambda s,i,j: s[j-1:j] in ['0','1','2','3','4','5','6','7','8','9'], 'true'),(lambda s,i,j: s[j+i-2:j+i-1] in ['0','1','2','3','4','5','6','7','8','9'], 'true')] #,(lambda i: i % 7 == 0, "seven")]
 
 def apply_conditions(i):
 	for cond, replace in CONDITIONS:
-		print('c',cond)
-		print('r',replace)
-		print('i',i)
 		if cond(i):
 			return replace
 	return i
 
 ar = apply_conditions('0')
 print(ar)
-
+'''
+matching = re.match(r'^[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+$','64.242.')
+if matching:
+	print('ok')
 
 
 print("--- %s seconds ---" % (time.time() - start_time))

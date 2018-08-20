@@ -304,10 +304,11 @@ def combinationauto(mainauto,maindest,mainshortcut,item,string,varstates):
 
 
 def apply_conditions(s,i,j,conditions):
-	for cond, replace in conditions:
-		if cond(s,i,j):
-			return replace
-	return i
+	temp = True
+	for cond in conditions:
+		temp = temp and bool(cond(s,i,j))
+	#print(temp,s[j-1:j+i-1])
+	return temp
 
 def stringequality(string,mode,start=1,end=-1,condits=-1):
 	#listoftup = []
@@ -325,7 +326,7 @@ def stringequality(string,mode,start=1,end=-1,condits=-1):
 							autostring,deststring,shortcut = combinationauto(autostring,deststring,shortcut,(i,j,k),string,['x','y'])
 						count += 1
 	if mode == 1:
-		
+		stor = []
 		for i in range(start,end):
 			for j in range(1,len(string)+2-i):
 				skip = 1
@@ -335,31 +336,39 @@ def stringequality(string,mode,start=1,end=-1,condits=-1):
 							skip = 1
 						elif string[j-1:j+i-1] == string[k-1:k+i-1]:
 							if condits != -1:
+								#print('s',string[j-1:j+i-1])
 								othercond = apply_conditions(string,i,j,condits)
+								#print(othercond)
 							else:
-								othercond = 'true'
-							
-							if othercond == 'true':
+								othercond = True
+						
+							if othercond:
 							#if string[j-1:j] in ['0','1','2','3','4','5','6','7','8','9']:
 								if count == 0:
 									autostring, deststring, shortcut = createauto((i,j,k),string,['x','y'],0)	
 								else:
 									autostring,deststring,shortcut = combinationauto(autostring,deststring,shortcut,(i,j,k),string,['x','y'])
-								count += 1
-							#stor.append( (j,string[j-1:j+i-1],k,string[k-1:k+i-1]) )
+									count += 1
+								stor.append( (j,string[j-1:j+i-1],k,string[k-1:k+i-1]) )
 					if skip == 1:
 						if string[k-1:k] == '\n':
 							skip = 0
 		string = string.replace('\n','')
 
 	print('count:',count)
+	for item in stor:
+		print (repr(item))
+	print('autolast',autostring.last)
+	
 	autostring.start = str(autostring.start)
 	autostring.end = str(autostring.end)
 	autostring.states = []
 	for i in range(autostring.last+1):
 		autostring.states.append(str(i))
 	#autostring.printauto()
-	print('totalnodes:',autostring.last)
+	#print('totalnodes:',autostring.last)
+	#sys.exit(1)
+	
 	temp = {}
 	for key, items in autostring.transition.items():
 		temp[str(key)] = []
@@ -368,7 +377,7 @@ def stringequality(string,mode,start=1,end=-1,condits=-1):
 			temp[str(key)].append(nitem)
 
 	autostring.transition = temp
-
+	
 	'''
 	for key, items in autostring.transition.items():
 		if not isinstance(items, list):

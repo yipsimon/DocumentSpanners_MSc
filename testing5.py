@@ -57,8 +57,9 @@ sc1.csymtonulllong(automata1)
 
 f = open('access_log2', 'r')
 string = f.read()
-f.close()
-condits = [(lambda s,i,j: s[j-1:j] in ['0','1','2','3','4','5','6','7','8','9'], 'true'),(lambda s,i,j: s[j+i-2:j+i-1] in ['0','1','2','3','4','5','6','7','8','9'], 'true')] #,(lambda i: i % 7 == 0, "seven")]
+f.close() #\d+\.
+#condits = [(lambda s,i,j: re.match(r'^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$',s[j-1:j+i-1]))] #,(lambda s,i,j: s[j+i-2:j+i-1] in ['0','1','2','3','4','5','6','7','8','9'], 'true')] #,(lambda i: i % 7 == 0, "seven")]
+condits = [(lambda s,i,j: re.match(r'^[0-9.]+$',s[j-1:j+i-1]))]
 string, automata = sc3.stringequality(string,1,7,16,condits)
 print('stringdone') #long
 
