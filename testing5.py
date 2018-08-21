@@ -4,26 +4,9 @@ import scriptgrph as sg
 import script1rev as sc1
 import threading, time, sys, copy, objgraph, random, inspect, re
 
+start_prctime = time.time()
 start_time = time.time()
-'''
-automata1 = sc2.automata(0,0,0)
-automata1.reset()
-automata1.states = ['0','1','2','3','4','5','6','7','8','9']
-automata1.varstates = ['x']
-automata1.transition['0'] = [('0','(.)'),('1','x+')]
-automata1.transition['1'] = [('1','[0-9]'),('2','[0-9]')]
-automata1.transition['2'] = [('3','.')]
-automata1.transition['3'] = [('3','[0-9]'),('4','[0-9]')]
-automata1.transition['4'] = [('5','.')]
-automata1.transition['5'] = [('5','[0-9]'),('6','[0-9]')]
-automata1.transition['6'] = [('7','.')]
-automata1.transition['7'] = [('7','[0-9]'),('8','[0-9]')]
-automata1.transition['8'] = [('9','x-')]
-automata1.transition['9'] = [('9','(.)')]
-automata1.start = '0'
-automata1.end = '9'
-automata1.last = 9
-'''
+
 automata1 = sc2.automata(0,0,0)
 automata1.reset()
 automata1.states = ['0','1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17']
@@ -58,47 +41,36 @@ sc1.csymtonulllong(automata1)
 f = open('access_log2', 'r')
 string = f.read()
 f.close() #\d+\.
+
 #condits = [(lambda s,i,j: re.match(r'^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$',s[j-1:j+i-1]))] #,(lambda s,i,j: s[j+i-2:j+i-1] in ['0','1','2','3','4','5','6','7','8','9'], 'true')] #,(lambda i: i % 7 == 0, "seven")]
-condits = [(lambda s,i,j: re.match(r'^[0-9.]+$',s[j-1:j+i-1]))]
-string, automata = sc3.stringequality(string,1,7,16,condits)
-print('stringdone') #long
+condits = [(lambda s,i,j: re.match(r'^\d+\.\d+\.\d+\.\d$',s[j-1:j+i-1]))]
 
-sc1.funchk(automata)
-print('functionchkdone') #long
+string, automata = sc3.stringequality(string,1,7,16)#,condits)
+print("stringeq : %s seconds" % (time.time() - start_time))
+start_time = time.time()
+#objgraph.show_most_common_types()
+#sc1.funchk(automata)
+
 sc1.csymtonulllong(automata)
-print('tonulldone')
+print("toepsilion : %s seconds" % (time.time() - start_time))
+start_time = time.time()
+
 automata = sc3.joinver1(automata,automata1)
-print('joindone')	#long
-print('autonodes:',automata.last)
+print("Joined : %s seconds" % (time.time() - start_time))
+start_time = time.time()
+
 finalgraph = sc1.generateAg(automata,string)
-print('Agdone')	#very long
-outputgraph, outputendnode = sc1.finalauto(automata,finalgraph)
-print('outputdone')
+print("Ag graph : %s seconds" % (time.time() - start_time))
+start_time = time.time()
+
 outputs = sc1.calcresults(finalgraph, len(string), automata.varconfig)
-print('calcdone')
-sc1.printresultsv2(outputs,automata,string)
+print("Calc : %s seconds" % (time.time() - start_time))
+start_time = time.time()
 
 
-
-print("--- %s seconds ---" % (time.time() - start_time))
-objgraph.show_most_common_types()
-sys.exit(1)
-
-'''
-for line in f:
-	print(line)
-
-whole = ''
-for j in readdata:
-	for k in readdata:
-
-	whole = whole+let
-	ip = '64.242.88.10'
-	if let == '\n':
-		print(whole)
-		whole = ''
-
-'''
+sc1.printresultsv2(outputs,automata,string,0,0,1)
+print("Total Time: %s seconds" % (time.time() - start_prctime))
+#objgraph.show_most_common_types()
 
 
 sys.exit(1)

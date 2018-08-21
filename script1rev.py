@@ -302,6 +302,7 @@ def generateAg(auto,text):
 						elif edge[1] == '[epsi]' and auto.varconfig[extranode] == auto.varconfig[edge[0]]:
 							if edge[0] == str(auto.end):
 								#Add path which end at the terminal node
+								print(currentnode)
 								finalgraph[i][currentnode].add(edge[0])
 							else:
 								#if edge[0] not in seenlist:
@@ -383,8 +384,8 @@ def printresults(listofoutputs):
 """
 Function to print results in a table format
 """
-def printresultsv2(listofoutputs,auto,string,showstring=0,showconfig=0):
-	print ('\n results')
+def printresultsv2(listofoutputs,auto,string,showstring=0,showconfig=0,showposstr=0):
+	print ('\nResults Table')
 	key1 = {}	#key correspond from int to w,o,c format
 	key2 = {}	#key correspond from int to string format
 	key3 = {}	#key correspond from int to varstate positions format x:[1,2], y:[2,4] etc
@@ -445,7 +446,7 @@ def printresultsv2(listofoutputs,auto,string,showstring=0,showconfig=0):
 		for item in auto.varstates:
 			tempkey[str(item)] = []
 	
-	tab = txttab.Texttable(100)
+	tab = txttab.Texttable()
 	headings = ['No.']
 	if showstring == 1:
 		headings.append('String')
@@ -453,8 +454,9 @@ def printresultsv2(listofoutputs,auto,string,showstring=0,showconfig=0):
 		headings.append('w,o,c format')
 	for v in range(len(auto.varstates)):
 		headings.append(auto.varstates[v])
-	for v in range(len(auto.varstates)):
-		headings.append(auto.varstates[v]+'str')
+	if showposstr == 1:
+		for v in range(len(auto.varstates)):
+			headings.append(auto.varstates[v]+'str')
 
 	tab.header(headings)
 	for i in range(len(listofoutputs)):
@@ -466,12 +468,13 @@ def printresultsv2(listofoutputs,auto,string,showstring=0,showconfig=0):
 		#temp = [i,key2[i],key1[i]]
 		for v in range(len(auto.varstates)):
 			temp.append(key3[i][auto.varstates[v]])
-		for v in range(len(auto.varstates)):
-			start = int(key3[i][auto.varstates[v]][0])-1
-			end = int(key3[i][auto.varstates[v]][1])-1
-			#print('s',start,'e',end)
-			temp2 = string[start:end]
-			temp.append([temp2])
+		if showposstr == 1:
+			for v in range(len(auto.varstates)):
+				start = int(key3[i][auto.varstates[v]][0])-1
+				end = int(key3[i][auto.varstates[v]][1])-1
+				#print('s',start,'e',end)
+				temp2 = string[start:end]
+				temp.append([temp2])
 		tab.add_row(temp)
 	
 	s = tab.draw()

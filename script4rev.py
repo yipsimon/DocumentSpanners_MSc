@@ -31,21 +31,30 @@ automata2.transition['E'] = [('E','a')]
 automata2.start = 'A'
 automata2.end = 'E'
 
-string = 'a'*3
+string = 'aaa\naaa'
 sc1.funchk(automata1)
-sc1.csymtonulllong(automata1)
+#sc1.csymtonulllong(automata1)
+proauto = sc3.projection(automata1,['x'],1)
+sg.printgraph(automata1,'pre2')
+sg.printgraph(proauto,'pre')
+sys.exit(1)
+
 sc1.funchk(automata2)
 sc1.csymtonulllong(automata2)
 automata = sc3.joinver1(automata1,automata2)
-automata.printauto()
 automata.rename()
-string, automata3 = sc3.stringequality(string,0)
-sc1.funchk(automata3)
+string, automata3 = sc3.stringequality(string,1)
+#sc1.funchk(automata3)
+#sys.exit(1)
+#sg.printgraphconfig(automata3,automata3.varconfig,'test1')
 sc1.csymtonulllong(automata3)
 automata = sc3.joinver1(automata,automata3)
-sg.printgraphconfig(automata,automata.varconfig,'test1')
+automata.printauto()
 automata.rename()
 finalgraph = sc1.generateAg(automata,string)
+if not finalgraph[-1]:
+	print('No results')
+	sys.exit(1)
 outputgraph, outputendnode = sc1.finalauto(automata,finalgraph)
 outputs = sc1.calcresults(finalgraph, len(string), automata.varconfig)
 sc1.printresultsv2(outputs,automata,string,1,1)

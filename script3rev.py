@@ -3,17 +3,26 @@ import scriptgrph as sg
 import script1rev as sc1
 import threading, time, sys, copy, objgraph, random, inspect, re
 
-
+"""
+This function is projection from the algebraic operation of spanners. 
+The function takes an automata object and transform the automata that only contain the desire variable statees.
+Input: Automata object, list of variable states for projections and an indicator determine 
+	whether the automata object had gone through the csymtonullong() function.
+Output: A new automata object only contains the desired projections
+"""
 def projection(automata,listofprojections,before=0):
+	#Initialise a new automata object
 	auto = sc2.automata(0,0,0)
 	auto.reset()
 	auto = copy.deepcopy(automata)
-	#If performed before csymtonulllong() function see sc1
+	#If performed before csymtonulllong() function see sc1,
+	#Then, there exists edges containing the open variable states and closing variable states
 	if before == 1:
 		ext = ['+','-']
 		for key, edges in auto.transition.items():
 			for edge in edges:
 				if edge[1][-1] in ext:
+					#Remove and Replace unneeded variable states values in the automata
 					if not edge[1][0] in listofprojections:
 						auto.transition[key].remove(edge)
 						newedge = (edge[0],'[epsi]')
@@ -49,21 +58,30 @@ def isnotlv6(table,key):
 	if not key in table:
 		table[key] = set([])
 
+"""
+This is a subfunction in the Join function to initialise the automata object as the result of the join operation.
+Input: Automata Object 1, Automata Object 2
+Output: The initialised join Automata Object (without varconfig, transition, states), Tempkey which stores the position of the variable states in the variable configuration for each node.
+"""
 def joincreate(auto1,auto2):
+	#Initialise the Join automata object
 	auto = sc2.automata(0,0,0)
 	auto.reset()
+	#The start node of the join will be the two starting nodes of the automata, stored in a tuple.
 	auto.start = (str(auto1.start),str(auto2.start))
+	#Similarly for terminal node
 	auto.end = (str(auto1.end),str(auto2.end))
+	#Combine both automata variable states together, without overlap
 	auto.varstates.extend(auto1.varstates)
-	for item in auto1.varstates:
-		if not item in auto.varstates:
-			auto.varstates.append(item)
-
 	for x in auto2.varstates:
 		if x not in auto.varstates:
 			auto.varstates.append(x)
-	keytemp = {}
+	
+	#Store the position of existing variable states of both automata
+	keytemp = {} #Format: { 'x': (0,1), 'y': (1,0)} if Auto1.key = {'x':0,'y':1}, Auto2.key = {'y':0,'x':1}
+	#This is used to get the variable configuration for specified state from both automata quickly.
 	for variable in auto.varstates:
+		#If a variable state does not exist in one of the automata, we represent this using -1.
 		if variable not in auto1.key:
 			num1 = -1
 		else:
@@ -78,20 +96,44 @@ def joincreate(auto1,auto2):
 
 	return auto, keytemp
 
-
+"""
+A subfunction in the Join function. 
+This function checks for [epsi] values for all edges in the automata and pass it through to another subfunction.
+This function add new empty edges to the automata object when more than one empty edges are connected between the nodes.
+If empty edges are connected one after the other, then we need to consider that varconfig changes can change without strictly going through the same order.
+For example, if 1->2->3 are empty edges and '2' has varconfig [o,w], '3' has [o,o], 'x','y' resp.
+Both states will be open in '3' but to reach '3', '2' has to be open 'x' first. 
+However, since '1','2','3' are connected by empty edges, 
+the order of opening for the state should not matter at all since 1->2->3 connected by empty edges is the same as having 1->3 directly a empty edge. 
+The main point is that node '1', can reach '3' either way. 
+However, without the direct edge from 1->3, the automata will specified to opening 'x' first.
+Adding a new empty edge from '1' to '3' will consider both state opened at the same time. 
+"""
 def addepsilon(auto):
 	for startnode, tuples in auto.transition.items():
 		for tup in tuples:
+			#If find an [epsi] value, we pass the start node and the end node of the edge to the subfunction.
 			if tup[1] == '[epsi]':
 				checkfunction(auto,startnode,tup[0])
-
+"""
+A subfunction of the addepsilon function, part of the Join function.
+This function checks for [epsi] values on edges (that does not end in start node) from the 'search' node, 
+and add new [epsi] edges to the start node, skipping the 'search' node all together.
+i.e. 0 -> 1 -> 2, new edge 0 -> 2, without passing 1.
+"""
 def checkfunction(auto,start,search):
 	for tup in auto.transition[search]:
+		#Find [epsi] that does not have destination in start node
 		if tup[1] == '[epsi]' and tup[0] != start:
+			#Only add the epsi edge if it does not exist in the start node.
 			if (tup[0],'[epsi]') not in auto.transition[str(start)]:
 				auto.transition[str(start)].append( (tup[0],'[epsi]') )
+			#Continue searching for possible paths
 			checkfunction(auto,start,tup[0])
 
+"""
+
+"""
 def checklegal(auto,keytemp,auto1,auto2,seen,dest,template,currentnode,finallist,endvalue,todo,done,key3):
 	fail = 0
 	for variable in auto.varstates:
@@ -233,32 +275,46 @@ def createauto(item,string,varstates,inode):
 	if (item[0]+item[2]) > maxmum:
 		maxmum = item[0]+item[2]
 	breaking = 0
-
+	for i in range(len(varstates)):
+		auto.key[str(varstates[i])] = i
+	auto.varconfig[str(inode)] = ['w','w']
+	#[c,w] or [w,c]
 
 	for i in range(1,len(string)+2):
 		if i == item[1]:
 			auto.transition[str(node)] = [(str(node+1),'x+')]
+			auto.varconfig[str(node+1)] = copy.deepcopy(auto.varconfig[str(node)])
+			auto.varconfig[str(node+1)][0] = 'o'
 			node += 1
 		if i == item[2]:
 			auto.transition[str(node)] = [(str(node+1),'y+')]
+			auto.varconfig[str(node+1)] = copy.deepcopy(auto.varconfig[str(node)])
+			auto.varconfig[str(node+1)][1] = 'o'
 			node += 1
 		if i == (item[0]+item[1]):
 			auto.transition[str(node)] = [(str(node+1),'x-')]
+			auto.varconfig[str(node+1)] = copy.deepcopy(auto.varconfig[str(node)])
+			auto.varconfig[str(node+1)][0] = 'c'
 			node += 1
 		if i == (item[0]+item[2]):
 			auto.transition[str(node)] = [(str(node+1),'y-')]
+			auto.varconfig[str(node+1)] = copy.deepcopy(auto.varconfig[str(node)])
+			auto.varconfig[str(node+1)][1] = 'c'
 			node += 1
 		if i == maxmum and i < (len(string)+1):
 			auto.transition[str(node)] = [(str(node),'(.)'),(str(node+1),'(.)')]
 			auto.transition[str(node+1)] = []
+			auto.varconfig[str(node+1)] = copy.deepcopy(auto.varconfig[str(node)])
 			breaking = 1
 			break
 		elif i == len(string)+1:
 			auto.transition[str(node)] = []
+			#auto.varconfig[str(node)] = copy.deepcopy(auto.varconfig[str(node-1)])
 		else:
 			ext2 = ['\n','\r','\t']
 			if not string[i-1] in ext2:
 				auto.transition[str(node)] = [(str(node+1),string[i-1])]
+				auto.varconfig[str(node+1)] = copy.deepcopy(auto.varconfig[str(node)])
 				node += 1
 
 	if breaking == 1:
@@ -283,7 +339,8 @@ def combinationauto(mainauto,maindest,mainshortcut,item,string,varstates):
 		mainauto.transition[str(mainauto.start)].extend(auto.transition[str(auto.start)])
 		for key in range(mainauto.last+1,auto.end+1):
 			mainauto.transition[str(key)] = auto.transition[str(key)]
-
+			mainauto.varconfig[str(key)] = auto.varconfig[str(key)]
+			
 	else:
 		if shortcut == 1 and mainshortcut == 0:
 			mainshortcut = 1
@@ -297,6 +354,7 @@ def combinationauto(mainauto,maindest,mainshortcut,item,string,varstates):
 		mainauto.transition[str(mainauto.start)].extend(auto.transition[str(auto.start)])
 		for key in range(mainauto.last+1,auto.end+1):
 			mainauto.transition[str(key)] = auto.transition[str(key)]
+			mainauto.varconfig[str(key)] = auto.varconfig[str(key)]
 
 	mainauto.last = auto.end
 
@@ -315,6 +373,10 @@ def stringequality(string,mode,start=1,end=-1,condits=-1):
 	count = 0
 	if end == -1:
 		end = len(string)+2
+
+	if mode == 2:
+		string = string.replace('\n','')
+		mode = 0
 	if mode == 0:
 		for i in range(start,end):
 			for j in range(1,len(string)+2-i):
@@ -336,19 +398,16 @@ def stringequality(string,mode,start=1,end=-1,condits=-1):
 							skip = 1
 						elif string[j-1:j+i-1] == string[k-1:k+i-1]:
 							if condits != -1:
-								#print('s',string[j-1:j+i-1])
 								othercond = apply_conditions(string,i,j,condits)
-								#print(othercond)
 							else:
 								othercond = True
 						
 							if othercond:
-							#if string[j-1:j] in ['0','1','2','3','4','5','6','7','8','9']:
 								if count == 0:
 									autostring, deststring, shortcut = createauto((i,j,k),string,['x','y'],0)	
 								else:
 									autostring,deststring,shortcut = combinationauto(autostring,deststring,shortcut,(i,j,k),string,['x','y'])
-									count += 1
+								count += 1
 								stor.append( (j,string[j-1:j+i-1],k,string[k-1:k+i-1]) )
 					if skip == 1:
 						if string[k-1:k] == '\n':
@@ -356,8 +415,8 @@ def stringequality(string,mode,start=1,end=-1,condits=-1):
 		string = string.replace('\n','')
 
 	print('count:',count)
-	for item in stor:
-		print (repr(item))
+	#for item in stor:
+		#print (repr(item))
 	print('autolast',autostring.last)
 	
 	autostring.start = str(autostring.start)
@@ -365,10 +424,7 @@ def stringequality(string,mode,start=1,end=-1,condits=-1):
 	autostring.states = []
 	for i in range(autostring.last+1):
 		autostring.states.append(str(i))
-	#autostring.printauto()
-	#print('totalnodes:',autostring.last)
-	#sys.exit(1)
-	
+
 	temp = {}
 	for key, items in autostring.transition.items():
 		temp[str(key)] = []
@@ -384,7 +440,6 @@ def stringequality(string,mode,start=1,end=-1,condits=-1):
 			autostring.transition[key] = [items]
 	'''
 	#autostring.tostr() #Long
-	
 
 	return string, autostring
 

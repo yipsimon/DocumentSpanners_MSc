@@ -1,7 +1,0 @@
-digraph {
-	rankdir=LR size="8,5"
-	node [shape=doublecircle]
-	2
-	node [shape=circle]
-	0 -> 1 [label="&epsilon;,['o', 'w']"]
-}
