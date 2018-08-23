@@ -59,9 +59,32 @@ def apply_conditions(i):
 ar = apply_conditions('0')
 print(ar)
 '''
-matching = re.match(r'^[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+$','64.242.')
-if matching:
-	print('ok')
+def apply_conditions(s,i,j,conditions):
+	temp = True
+	for cond in conditions:
+		print('c',bool(cond(s,i,j)))
+		temp = temp and bool(cond(s,i,j))
+	#print(temp,s[j-1:j+i-1])
+	return temp
 
-
+#condits = [(lambda s,i,j: re.match(r'^\d+\.\d+\.\d+\.\d+$',s[j-2:j+i-1]))]
+condits = [(lambda s,i,j: re.match(r'^\d+\.\d+\.\d+\.\d+$',s[j-1:j+i-1])),\
+			(lambda s,i,j: True if j-1 == 0 else (True if re.match(r'^[^0-9]$',s[j-2]) else False) ),\
+			(lambda s,i,j: True if j+i-1 == len(string) else (True if re.match(r'^[^0-9]$',s[j+i-1]) else False) )]
+string = '66.77.88.99'
+i = 11
+j = 1
+print(string[j-1:j+i-1])
+print(j+i-1,len(string))
+othercond = apply_conditions(string,i,j,condits)
+print('f',othercond)
+'''
+for i in range(11,12):
+	for j in range(1,len(string)+2-i):
+		for k in range(j+1,len(string)+2-i):
+			if string[j-1:j+i-1] == string[k-1:k+i-1]:
+				print ('j ',string[j-1:j+i-1],' k',string[k-1:k+i-1])
+				othercond = apply_conditions(string,i,j,condits)
+				print(othercond)
 print("--- %s seconds ---" % (time.time() - start_time))
+'''

@@ -5,6 +5,13 @@ import script1rev as sc1
 import threading, time, sys, copy, objgraph, random, inspect
 
 start_time = time.time()
+listing = ['hello','happy','world','sad']
+auto = sc3.alpha(listing,'x')
+auto.printauto()
+sg.printgraph(auto,'ttt')
+sys.exit(1)
+
+
 automata1 = sc2.automata(0,0,0)
 automata1.reset()
 automata1.states = ['0','1','2','3','4']
@@ -31,25 +38,25 @@ automata2.transition['E'] = [('E','a')]
 automata2.start = 'A'
 automata2.end = 'E'
 
-string = 'aaa\naaa'
+string = 'aaa'
 sc1.funchk(automata1)
-#sc1.csymtonulllong(automata1)
-proauto = sc3.projection(automata1,['x'],1)
-sg.printgraph(automata1,'pre2')
-sg.printgraph(proauto,'pre')
-sys.exit(1)
+sc1.csymtonulllong(automata1)
+
 
 sc1.funchk(automata2)
 sc1.csymtonulllong(automata2)
 automata = sc3.joinver1(automata1,automata2)
+
 automata.rename()
 string, automata3 = sc3.stringequality(string,1)
+#sg.printgraphconfig(automata3,automata3.varconfig,'test2')
+#sys.exit(1)
 #sc1.funchk(automata3)
 #sys.exit(1)
-#sg.printgraphconfig(automata3,automata3.varconfig,'test1')
+
 sc1.csymtonulllong(automata3)
 automata = sc3.joinver1(automata,automata3)
-automata.printauto()
+#automata.printauto()
 automata.rename()
 finalgraph = sc1.generateAg(automata,string)
 if not finalgraph[-1]:

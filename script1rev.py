@@ -179,8 +179,7 @@ def foundepsilon(auto,finalgraph,currentnode,edgenode,text,letterpos,extratodo):
 	for edge in auto.transition[edgenode]:
 		#if edge[1] == text[letterpos] or edge[1] == '[sum]':
 		if edge[1] != '[epsi]':
-			matching = re.match(edge[1],text[letterpos])
-			if matching:
+			if re.match(edge[1],text[letterpos]):
 				#If not last letter, add to finalgraph normally
 				if letterpos == len(text)-1:
 					#If last letter, only add nodes that are terminals in the automata to finalgraph
@@ -222,8 +221,7 @@ def generateAg(auto,text):
 			#Check if there is an edge that matching the first letter of the text
 			if tup[1] != '[epsi]':
 				#print(tup[1])
-				matching = re.match(tup[1],text[0])
-				if matching:
+				if re.match(tup[1],text[0]):
 					#print('matched, item',item)
 					nxsetnodes.add(item)
 					finalgraph[-1]['0'].add(item)
@@ -262,8 +260,7 @@ def generateAg(auto,text):
 						#print('e',edge[1])
 					if edge[1] != '[epsi]':
 						#print(edge[1])
-						matching = re.match(edge[1],text[i])
-						if matching:
+						if re.match(edge[1],text[i]):
 							#If last letter, only add edges to point toward terminal
 							if i == len(text)-1:
 								if edge[0] == str(auto.end):

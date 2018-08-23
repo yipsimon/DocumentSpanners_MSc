@@ -54,10 +54,6 @@ def isnotlv5(table,key):
 	if not key in table:
 		table[key] = []
 
-def isnotlv6(table,key):
-	if not key in table:
-		table[key] = set([])
-
 """
 This is a subfunction in the Join function to initialise the automata object as the result of the join operation.
 Input: Automata Object 1, Automata Object 2
@@ -132,139 +128,142 @@ def checkfunction(auto,start,search):
 			checkfunction(auto,start,tup[0])
 
 """
-
+A subfunction from the Join function. 
+This funciton checks whether the propose combined destination of the nodes are valid for the join automata.
+Input: Start and Destination node, all other are just for information purposes
+Output: Added new edges to the start node and updated the varconfig for destination node, updated the todo set.
 """
-def checklegal(auto,keytemp,auto1,auto2,seen,dest,template,currentnode,finallist,endvalue,todo,done,key3):
+def checklegal(auto,keytemp,auto1,auto2,seen,dest,currentnode,endvalue,todo,done):
 	fail = 0
+	#Destination node : (endpoint1, endpoint2), corresp to auto1 and auto2
+	#Check varconfig of destinations in auto1 and auto2.
 	for variable in auto.varstates:
+		#When a variable state exist in one automata but not in the other, the destination nodes are valid, as there are no conflicts.
 		if keytemp[variable][0] == -1 or keytemp[variable][1] == -1:
 			fail = 0
+		#if the varconfig of the same variable state is different, the destination is not valid
 		elif auto1.varconfig[str(dest[0])][keytemp[variable][0]] != auto2.varconfig[str(dest[1])][keytemp[variable][1]]:
 			fail = 1
 			break
 
+	#When the dest node pass the varconfig check and it is not processed for the currentnode (not in seen set)
 	if fail == 0 and (not seen & {dest}):
 		seen.add(dest)
-		finallist[str(dest)] = []
-		finallist[str(dest)].extend(template)
+		#Initalise
+		auto.varconfig[str(dest)] = copy.deepcopy(auto.varconfig[str(auto.start)])
 		isnotlv5(auto.transition,str(currentnode))
+		#Add the varconfig for each variable state for the destination node
 		for variable in auto.varstates:
-			tup = keytemp[variable]
-			if tup[0] != -1 and tup[1] == -1:
-				finallist[str(dest)][key3[variable]] = auto1.varconfig[str(dest[0])][tup[0]]
-			elif tup[1] != -1 and tup[0] == -1:
-				finallist[str(dest)][key3[variable]] = auto2.varconfig[str(dest[1])][tup[1]]
+			tup = keytemp[variable]	#Get positions of varstate for auto1.varconfig and auto2.varconfig
+			if tup[0] != -1 and tup[1] == -1:	#Varstate does not exist in auto2, use auto1 varconfig
+				auto.varconfig[str(dest)][auto.key[variable]] = auto1.varconfig[str(dest[0])][tup[0]]
+				#Auto.varconfig for join of dest node = list, auto.key[variable] get position of the varstate in the list
+				#Store the varconfig of the varstate using auto1 and the position of varstate of auto1 in keytemp
+			elif tup[1] != -1 and tup[0] == -1:	#Varstate does not exist in auto1, use auto2 varconfig
+				auto.varconfig[str(dest)][auto.key[variable]] = auto2.varconfig[str(dest[1])][tup[1]]
 			else:
-				finallist[str(dest)][key3[variable]] = auto1.varconfig[str(dest[0])][tup[0]]
-	
+				auto.varconfig[str(dest)][auto.key[variable]] = auto1.varconfig[str(dest[0])][tup[0]]
+		
+		#Add new edge
 		end = (str(dest), endvalue)
 		auto.transition[str(currentnode)].append(end)
 		isnotlv5(auto.transition,str(dest))
+		#If the dest node has not been processed before, add node to todo set.
 		if not done & {dest}:
 			todo.add(dest)
 			
-
+"""
+This is the join operation of the core spanner. 
+Input: Automata object 1, Automata object 2
+Output: Join Automata Object
+"""
 def joinver1(auto1,auto2):
-
+	#Add extra empty edges to both automata, allow multiple opening and closing states in one transition where its valid.
 	addepsilon(auto1)
 	addepsilon(auto2)
 	
+	#Initialise the join automata object with basic information
 	auto, keytemp = joincreate(auto1,auto2)
 	
-	key3 = {}
+	#Template for the default varconfig for the varstates, and key for allocating position of varconfig (list) for each varstate.
+	#{x:0, y:1, z:2}, varconfig for '4' = [w,o,c], show x = waiting, y = opened, z = closed.
 	template = list()
 	for i in range(len(auto.varstates)):
-		key3[str(auto.varstates[i])] = i
+		auto.key[str(auto.varstates[i])] = i
 		template.append('w')
-
-	isnotlv5(auto.transition,str((auto1.end,auto2.end)))
-	todo = set([(str(auto1.start),str(auto2.start))])
-	done = set([])
-	finallist = {str((str(auto1.start),str(auto2.start))): template}
+	
+	isnotlv5(auto.transition,str(auto.end))
+	todo = set([auto.start])	#Set of nodes to be processed
+	done = set([])	#Set of nodes to had been processed, to prevent reprocessing
+	auto.varconfig[str(auto.start)] = template	
+	#Processing all nodes in todo, to find new destination and add edges to nodes
 	while todo:
 		currentnode = todo.pop()
 		auto.states.append(str(currentnode))
-		done.add(currentnode)
-		seen = set([])
-
-		for edge1 in auto1.transition[str(currentnode[0])]:
-			for edge2 in auto2.transition[str(currentnode[1])]:
+		done.add(currentnode)	
+		seen = set([])	#Reset seen, this set is used to prevent repeat edges to dest that has been seen with currentnode
+		"""
+		Format of Current node: (node1, node2), from auto1, auto2 resp
+		Format of destination node: ( pathsfromnode1, pathsfromnode2 )
+		Destination node generated in three format, (hold,change), (change,hold), (change,change). Change = existing dest reached from node
+		When one node is holded, only empty edges are valid as new dest from node
+		"""
+		for edge1 in auto1.transition[currentnode[0]]:	
+			for edge2 in auto2.transition[currentnode[1]]:
+				#Get all destination node where both node has changed, if value of edges matches, it could be a valid destination
 				if edge1[1] == edge2[1]:
 					dest = (edge1[0],edge2[0])
-					if len(edge1[1]) == 1:
-						matchs = re.match('\W',edge1[1])
-						if matchs:
-							 val = "\\"+str(edge1[1])
-						else:
-							val = edge1[1]	
-					else:
-						val = edge1[1]
-					checklegal(auto,keytemp,auto1,auto2,seen,dest,template,currentnode,finallist,val,todo,done,key3)
+					#Value are essentially regex expression, we need to make sure that matching individual symbols are properly expressed as regex
+					val = edge1[1]
+					if len(edge1[1]) == 1:	
+						if re.match('\W',edge1[1]):		#Check if edge value is a symbol, non-unicode char
+							 val = "\\"+str(edge1[1])	#Add double \ to regex expression to match symbol
+
+					checklegal(auto,keytemp,auto1,auto2,seen,dest,currentnode,val,todo,done)
 				else:
+					#When the values are not equals and not empty, then they are both advanced regex expression, not just a specific letter or number
 					if edge1[1] != '[epsi]' and edge2[1] != '[epsi]':
 						dest = (edge1[0],edge2[0])
+						val1 = str(edge1[1])
+						val2 = str(edge2[1])
+						if len(edge1[1]) == 1:
+							if re.match('\W',edge1[1]):
+								val1 = "\\"+str(edge1[1])
+							
+						if len(edge2[1]) == 1:
+							if re.match('\W',edge2[1]):
+								val2 = "\\"+str(edge2[1])
+
+						#The (?= )(?= ) is used to join two regex expressions
+						#We check whether one exists on either edges and only wrapping (?= ) to edges without them
 						if edge1[1][0:3] == "(?=" and edge2[1][0:3] != "(?=":
-							if len(edge2[1]) == 1:
-								matchs2 = re.match('\W',edge2[1])
-								if matchs2:
-									val2 = "\\"+str(edge2[1])
-								else:
-									val2 = str(edge2[1])
-							else:
-								val2 = str(edge2[1])
 							value = edge1[1]+'(?='+val2+')'
 						elif edge1[1][0:3] != "(?=" and edge2[1][0:3] == "(?=":
-							if len(edge1[1]) == 1:
-								matchs1 = re.match('\W',edge1[1])
-								if matchs1:
-									val1 = "\\"+str(edge1[1])
-								else:
-									val2 = str(edge2[1])
-							else:
-								val1 = str(edge1[1])
 							value = '(?='+val1+')'+edge2[1]
 						elif edge1[1][0:3] == "(?=" and edge2[1][0:3] == "(?=":
 							value = edge1[1]+edge2[1]
 						else:
-							if len(edge1[1]) == 1:
-								matchs1 = re.match('\W',edge1[1])
-								if matchs1:
-									val1 = "\\"+str(edge1[1])
-								else:
-									val1 = str(edge1[1])
-							else:
-								val1 = str(edge1[1])
-							
-							if len(edge2[1]) == 1:
-								matchs2 = re.match('\W',edge2[1])
-								if matchs2:
-									val2 = "\\"+str(edge2[1])
-								else:
-									val2 = str(edge2[1])
-							else:
-								val2 = str(edge2[1])
 							value = '(?='+val1+')(?='+val2+')'
 						
-						checklegal(auto,keytemp,auto1,auto2,seen,dest,template,currentnode,finallist,value,todo,done,key3)
-
-			if edge1[1] == '[epsi]':
+						checklegal(auto,keytemp,auto1,auto2,seen,dest,currentnode,value,todo,done)
+			#All destination node where only changing node1 and keeping node2 the same
+			if edge1[1] == '[epsi]':	
 				dest = (edge1[0],currentnode[1])
-				checklegal(auto,keytemp,auto1,auto2,seen,dest,template,currentnode,finallist,edge1[1],todo,done,key3)
+				checklegal(auto,keytemp,auto1,auto2,seen,dest,currentnode,edge1[1],todo,done)
 
-		for edge3 in auto2.transition[str(currentnode[1])]:
+		for edge3 in auto2.transition[currentnode[1]]:
+			#All destination node where only changing node2 and keeping node1 the same
 			if edge3[1] == '[epsi]':
 				dest = (currentnode[0],edge3[0])
-				checklegal(auto,keytemp,auto1,auto2,seen,dest,template,currentnode,finallist,edge3[1],todo,done,key3)
+				checklegal(auto,keytemp,auto1,auto2,seen,dest,currentnode,edge3[1],todo,done)
 
-	auto.varconfig = finallist
-	auto.key = key3
 	return auto
 
-
-def ifnotlv7(table,key):
-	if not key in table:
-		table[key] = []
-
+"""
+A subfunction in the combinationauto. This function create an automata object from the item value.
+The item value is a tuple obtained from the stringequality function when it satisfied with the conditions.
+tuple format = (length of matched string, start position of varstate1 from string, start position of varstate2 from string)
+"""
 def createauto(item,string,varstates,inode):
 	auto = sc2.automata(0,0,0)
 	auto.reset()
@@ -279,25 +278,30 @@ def createauto(item,string,varstates,inode):
 		auto.key[str(varstates[i])] = i
 	auto.varconfig[str(inode)] = ['w','w']
 	#[c,w] or [w,c]
-
+	if item[1] <= item[2]:
+		start = item[1]
+	else:
+		start = item[2]
+	norepeat1 = 0
+	norepeat2 = 0
 	for i in range(1,len(string)+2):
 		if i == item[1]:
-			auto.transition[str(node)] = [(str(node+1),'x+')]
+			auto.transition[str(node)] = [(str(node+1),varstates[0]+'+')]
 			auto.varconfig[str(node+1)] = copy.deepcopy(auto.varconfig[str(node)])
 			auto.varconfig[str(node+1)][0] = 'o'
 			node += 1
 		if i == item[2]:
-			auto.transition[str(node)] = [(str(node+1),'y+')]
+			auto.transition[str(node)] = [(str(node+1),varstates[1]+'+')]
 			auto.varconfig[str(node+1)] = copy.deepcopy(auto.varconfig[str(node)])
 			auto.varconfig[str(node+1)][1] = 'o'
 			node += 1
 		if i == (item[0]+item[1]):
-			auto.transition[str(node)] = [(str(node+1),'x-')]
+			auto.transition[str(node)] = [(str(node+1),varstates[0]+'-')]
 			auto.varconfig[str(node+1)] = copy.deepcopy(auto.varconfig[str(node)])
 			auto.varconfig[str(node+1)][0] = 'c'
 			node += 1
 		if i == (item[0]+item[2]):
-			auto.transition[str(node)] = [(str(node+1),'y-')]
+			auto.transition[str(node)] = [(str(node+1),varstates[1]+'-')]
 			auto.varconfig[str(node+1)] = copy.deepcopy(auto.varconfig[str(node)])
 			auto.varconfig[str(node+1)][1] = 'c'
 			node += 1
@@ -312,7 +316,22 @@ def createauto(item,string,varstates,inode):
 			#auto.varconfig[str(node)] = copy.deepcopy(auto.varconfig[str(node-1)])
 		else:
 			ext2 = ['\n','\r','\t']
+			ext3 = [['w','c'],['c','w']]
 			if not string[i-1] in ext2:
+				#print(i,node,auto.varconfig[str(node)])
+				#if auto.varconfig[str(node)] in ext3 and (item[2]-(item[0]+item[1]) > 1 or item[1]-(item[0]+item[2]) > 1):
+				#	if norepeat2 == 0:
+				#		auto.transition[str(node)] = [(str(node),'(.)'),(str(node+1),'(.)')]
+				#		auto.varconfig[str(node+1)] = copy.deepcopy(auto.varconfig[str(node)])
+				#		node += 1
+				#		norepeat2 = 1
+				#elif auto.varconfig[str(node)] == ['w','w'] and node > inode and (start > 2):
+				#	if norepeat1 == 0:
+				#		auto.transition[str(node)] = [(str(node),'(.)'),(str(node+1),'(.)')]
+				#		auto.varconfig[str(node+1)] = copy.deepcopy(auto.varconfig[str(node)])
+				#		node += 1
+				#		norepeat1 = 1
+				#else:
 				auto.transition[str(node)] = [(str(node+1),string[i-1])]
 				auto.varconfig[str(node+1)] = copy.deepcopy(auto.varconfig[str(node)])
 				node += 1
@@ -392,9 +411,9 @@ def stringequality(string,mode,start=1,end=-1,condits=-1):
 		for i in range(start,end):
 			for j in range(1,len(string)+2-i):
 				skip = 1
-				for k in range(j+1,len(string)+2-i):
+				for k in range(1,len(string)+2-i):
 					if skip == 0:
-						if string[k+i-2:k+i-1] == '\n':
+						if string[k+i-2] == '\n':
 							skip = 1
 						elif string[j-1:j+i-1] == string[k-1:k+i-1]:
 							if condits != -1:
@@ -410,13 +429,15 @@ def stringequality(string,mode,start=1,end=-1,condits=-1):
 								count += 1
 								stor.append( (j,string[j-1:j+i-1],k,string[k-1:k+i-1]) )
 					if skip == 1:
-						if string[k-1:k] == '\n':
+						if string[k-1] == '\n':
 							skip = 0
 		string = string.replace('\n','')
 
 	print('count:',count)
-	#for item in stor:
-		#print (repr(item))
+	'''
+	for item in stor:
+		print (repr(item))
+	'''
 	print('autolast',autostring.last)
 	
 	autostring.start = str(autostring.start)
@@ -444,22 +465,21 @@ def stringequality(string,mode,start=1,end=-1,condits=-1):
 	return string, autostring
 
 def union(auto1,auto2):
-		auto1.rename2()
-		auto2.rename2()
+		auto1.toint()
+		auto2.toint()
 		
 		auto1.renumber(int(1))
 		auto2.renumber(int(auto1.end+1))
 		auto1.last = auto2.end+1
-		sg.printgraph(auto1,'text0')
-		sg.printgraph(auto2,'text1')
+
 		auto1.addedge(auto1.end,auto1.last,'[epsi]')
 		auto1.addedge(auto2.end,auto1.last,'[epsi]')
 		auto1.addedge(0,1,'[epsi]')
 		auto1.addedge(0,auto2.start,'[epsi]')
-		auto1.states = set([])
-		for i in range(auto1.last):
-			auto1.states.add(str(i))
-
+		auto1.varconfig[0] = ['w','w']
+		auto1.varconfig[auto1.last] = ['c','c']
+		auto1.states = []
+		
 		for item in auto2.varstates:
 			if item not in auto1.varstates:
 				auto1.varstates.append(item)
@@ -468,30 +488,46 @@ def union(auto1,auto2):
 			if not key in auto1.transition:
 				auto1.transition[key] = []
 			auto1.transition[key].extend(item)
+			auto1.varconfig[key] = auto2.varconfig[key]
+		temp = {}
+		for i in range(auto1.last+1):
+			auto1.states.append(str(i))
+			temp[str(i)] = auto1.varconfig[i]
+		auto1.varconfig = temp
 		
 		auto1.tostr()
-		auto1.printauto()
+		#auto1.printauto()
 
 def concat(auto1,auto2):
-	auto1.rename2()
-	auto2.rename2()
+	auto1.toint()
+	auto2.toint()
 	auto2.renumber(int(auto1.last+1))
 	auto1.addedge(auto1.end,auto1.last+1,'[epsi]')
 	for key, item in auto2.transition.items():
 		if not key in auto1.transition:
 			auto1.transition[key] = []
 		auto1.transition[key].extend(item)
+		auto1.varconfig[key] = auto2.varconfig[key]
+	
 	auto1.end = auto2.end
 	auto1.last = auto2.last
+	auto1.states = []
+	temp = {}
+	for i in range(auto1.last+1):
+		auto1.states.append(str(i))
+		temp[str(i)] = auto1.varconfig[i]
+	
+	auto1.varconfig = temp
 	auto1.tostr()
-	auto1.printauto()
+	#sc1.funchk(auto1)
+	#auto1.printauto()
 
 
-def alpha(listings):
+def alpha(listings,varstate):
 	auto = sc2.automata(0,0,0)
 	auto.reset()
 	auto.start = 0
-	auto.varstates = ['x']
+	auto.varstates = [str(varstate)]
 	auto.transition[str(0)] = [(str(0),'(.)'),(str(1),'x+')]
 	auto.transition[str(1)] = []
 	auto.last = 1
@@ -515,7 +551,7 @@ def alpha(listings):
 
 	auto.transition[str(auto.end)] = [(str(auto.end),'(.)')]
 	for i in range(auto.last+1):
-		auto.states.add(str(i))
+		auto.states.append(str(i))
 
 	return auto
 

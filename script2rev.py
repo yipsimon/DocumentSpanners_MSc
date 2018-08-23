@@ -82,7 +82,7 @@ class automata():
 
 		temp2 = {}
 		for name in self.varconfig.keys():
-			temp2[str(ref[name])] = self.varconfig[name]
+			temp2[str(ref[str(name)])] = self.varconfig[name]
 		self.varconfig = temp2
 
 		temp3 = {}
@@ -113,7 +113,7 @@ class automata():
 
 		temp2 = {}
 		for name in self.varconfig.keys():
-			temp2[str(ref[name])] = self.varconfig[name]
+			temp2[ref[name]] = self.varconfig[name]
 		self.varconfig = temp2
 
 		temp3 = {}
@@ -132,7 +132,7 @@ class automata():
 			num1 = int(nodes)+num
 			temp.append(num1)
 		self.states = temp
-		self.lastnum = num1
+		self.last += num
 		temp = {}
 		for key, item in self.transition.items():
 			temp[int(key)+num] = []
@@ -140,6 +140,12 @@ class automata():
 				ntup = (int(tup[0])+num,tup[1])
 				temp[int(key)+num].append(ntup)
 		self.transition = temp
+		temp = {}
+		for key, item in self.varconfig.items():
+			temp[int(key)+num] = []
+			for tup in item:
+				temp[int(key)+num].append(tup)
+		self.varconfig = temp
 
 	def addedge(self,start,dest,value):
 		tup = (dest,value)
