@@ -5,12 +5,13 @@ import script1rev as sc1
 import threading, time, sys, copy, objgraph, random, inspect
 
 start_time = time.time()
+'''
 listing = ['hello','happy','world','sad']
 auto = sc3.alpha(listing,'x')
 auto.printauto()
 sg.printgraph(auto,'ttt')
 sys.exit(1)
-
+'''
 
 automata1 = sc2.automata(0,0,0)
 automata1.reset()
@@ -42,13 +43,12 @@ string = 'aaa'
 sc1.funchk(automata1)
 sc1.csymtonulllong(automata1)
 
-
 sc1.funchk(automata2)
 sc1.csymtonulllong(automata2)
 automata = sc3.joinver1(automata1,automata2)
 
 automata.rename()
-string, automata3 = sc3.stringequality(string,1)
+string, automata3 = sc3.stringequality(string,0,0)
 #sg.printgraphconfig(automata3,automata3.varconfig,'test2')
 #sys.exit(1)
 #sc1.funchk(automata3)

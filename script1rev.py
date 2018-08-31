@@ -73,22 +73,22 @@ variable configuration for each node. Input: Automata object, Output:Automata Ob
 def funchk(auto):
 	openlist = {}	#Dictionary of all nodes with a set of variable states that has been opened
 	closelist = {}	#Dictionary of all nodes with a set of variable states that has been closed
-	finallist = {}	#Variable configuration values in automata object for all node in autoamta, format {'node': [/varconfigurations]}
+	auto.varconfig = {}	#Variable configuration values in automata object for all node in autoamta, format {'node': [/varconfigurations]}
 	key = {}		#Position of the specific variable config, i.e. [x,y] => {'x': 0, 'y': 1}
 	template = list()	#Default template for variable configuration, i.e. [w,w], the key above is used to indicate variable configuration for which variable state
 	#Note to self, the format {'node': {'varstate': varconfig, 'varstate': varconfig, ... }}, is also possible, consider for future implementation
 	
 	#Set positions for variable states, create the default templeta using the number of varstates.
 	for i in range(len(auto.varstates)):
-		key[str(auto.varstates[i])] = i
+		auto.key[str(auto.varstates[i])] = i
 		template.append('w')
 
 	#Creating Empty Spaces for dictionaries
 	for item in auto.states:
 		openlist[str(item)] = set([])
 		closelist[str(item)] = set([])
-		finallist[str(item)] = list()
-		finallist[str(item)].extend(template)
+		auto.varconfig[str(item)] = list()
+		auto.varconfig[str(item)].extend(template)
 		#Extend template, not = template, = change all items if value changed
 
 	seenlist = {str(auto.start)}	#Store seen nodes
@@ -98,7 +98,7 @@ def funchk(auto):
 		origin = todolist.pop() #Return an element from the right side
 		for item in auto.transition[origin]:
 			dest = str(item[0])
-			letter = item[1][0]
+			letter = item[1][:-1]
 			op = openlist[dest]
 			oq = openlist[str(origin)]
 			cp = closelist[dest]
@@ -123,6 +123,8 @@ def funchk(auto):
 					todolist.add(dest)
 					openlist[dest] = (openlist[origin] | {letter})
 					closelist[dest] = closelist[origin]
+					auto.varconfig[dest] = copy.deepcopy(auto.varconfig[origin])
+					auto.varconfig[dest][auto.key[letter]] = 'o'
 
 			#Find - from value of the edge, indicating a change of variable configuration
 			elif item[1][-1] == '-' and len(item[1]) > 1:
@@ -141,6 +143,8 @@ def funchk(auto):
 					todolist.add(dest)
 					openlist[dest] = openlist[origin] 
 					closelist[dest] = (closelist[origin] | {letter})
+					auto.varconfig[dest] = copy.deepcopy(auto.varconfig[origin])
+					auto.varconfig[dest][auto.key[letter]] = 'c'
 			
 			#Nothing is opened or closed.
 			else:
@@ -153,20 +157,22 @@ def funchk(auto):
 					todolist.add(dest)
 					openlist[dest] = openlist[origin] 
 					closelist[dest] = closelist[origin]	
+					auto.varconfig[dest] = copy.deepcopy(auto.varconfig[origin])
 
 	#Using the openlist and closelist, for each node, we can determine whether the variable state is waiting, open or closed 
+	'''
 	for node in auto.states:
 		opp = openlist[node]
 		cpp = closelist[node]
 		for config in auto.varstates:
 			if opp & {config} and cpp & {config}:	#If variable state is in both openlist and closelist
-				finallist[node][key[config]] = 'c'
+				auto.varconfig[node][auto.key[config]] = 'c'
 			elif opp & {config} and not cpp & {config}:	#If the variable state is in openlist but not closelist
-				finallist[node][key[config]] = 'o'
+				auto.varconfig[node][auto.key[config]] = 'o'
 			#All node have the default template of [w,w,..], not need to change to waiting.
-
-	auto.varconfig = finallist	
-	auto.key = key
+	'''
+	#auto.varconfig = finallist	
+	#auto.key = key
 
 """
 This function activate when it read a [epsi] with not variable configuration changes between the start and end node of the edge.
@@ -340,142 +346,6 @@ def generateAg(auto,text):
 		tokeepnodes = tokeepnodes | updatetokeep
 
 	return finalgraph
-
-"""
-Create only the transition edges dictionary of the automata strictly for displaying the Ag graph in a proper format.
-Input: Automata object, Graph (format: {name1: {name1.1: setvalues, name1.2: setvalues,...},...})
-Output, Graph (format: {startnode: [(endnode1,edgevalue),(endnode2,edgevalue),...],...}), end node
-"""
-def finalauto(auto,graph):
-	finalgraph = {}
-	final = -1
-	for positions, nodes in graph.items():
-		for begining, ending in nodes.items():
-			if positions == -1:
-				start = 'q0'
-			else:
-				start = (positions, begining)
-
-			ifnotlv1(finalgraph,str(start))
-			for edge in ending:
-				value = auto.varconfig[edge]
-				end = (positions+1, edge)
-				tup = (end,value)
-				finalgraph[str(start)].append(tup)
-
-			if positions > final:
-				final = positions
-
-	endnode = (final+1,str(auto.end))
-
-	return finalgraph, endnode
-
-"""
-Function to print results only in waiting, open and close format (w,o,c format)
-"""
-def printresults(listofoutputs):
-	print ('\n results')
-	for i in range(len(listofoutputs)):
-		print (listofoutputs[i])
-
-"""
-Function to print results in a table format
-"""
-def printresultsv2(listofoutputs,auto,string,showstring=0,showconfig=0,showposstr=0):
-	print ('\nResults Table')
-	key1 = {}	#key correspond from int to w,o,c format
-	key2 = {}	#key correspond from int to string format
-	key3 = {}	#key correspond from int to varstate positions format x:[1,2], y:[2,4] etc
-	
-	tempkey = {}	#Temporary store varpos value 
-	for item in auto.varstates:
-		tempkey[str(item)] = []
-		
-	#Initialise and link keys
-	for i in range(len(listofoutputs)):
-		key1[i] = listofoutputs[i]
-		key3[i] = {}
-		key2[i] = {}
-
-	#Iterate outputs
-	for i in range(len(listofoutputs)):
-		tempkey2 = []	#Termporary store string format
-		#Iterate within output of w.o.c format
-		for j in range(len(listofoutputs[i])):
-			#Check for changes
-			if j == 0 or listofoutputs[i][j] != listofoutputs[i][j-1]:
-				#Iterate within w,o,c format i.e [w,w],[w,o],..., 
-				for k in range(len(listofoutputs[i][j])):
-					if listofoutputs[i][j][k] == 'o':
-						if j == 0:
-							tempkey[auto.varstates[k]].append(j+1) #+1 since we start from 0 and want 1 for pos
-							tempkey2.append(auto.varstates[k]+'+')
-						else:
-							#Compare individual variable states
-							if listofoutputs[i][j-1][k] != listofoutputs[i][j][k]:
-								tempkey[auto.varstates[k]].append(j+1)
-								tempkey2.append(auto.varstates[k]+'+')
-					
-					elif listofoutputs[i][j][k] == 'c':
-						if j == 0:
-							#Closed immediately
-							tempkey[auto.varstates[k]].append(j+1)
-							tempkey[auto.varstates[k]].append(j+1)
-							tempkey2.append(auto.varstates[k]+'-')
-						else:
-							if listofoutputs[i][j-1][k] != listofoutputs[i][j][k]:
-								tempkey[auto.varstates[k]].append(j+1)
-								tempkey2.append(auto.varstates[k]+'-')
-								#Closed immediately if length == 1 otherwise it would have been == 2
-								if len(tempkey[auto.varstates[k]]) == 1:
-									tempkey[auto.varstates[k]].append(j+1)
-									tempkey2.append(auto.varstates[k]+'-')
-			#Add placeholder letter for string
-			if j != len(listofoutputs[i])-1:
-				tempkey2.append('a')
-		#Convert varpos format to tuple
-		for key, item in tempkey.items():
-			tempkey[key] = tuple(item)
-		#Add to resp keys
-		key3[i] = copy.deepcopy(tempkey)
-		key2[i] = copy.deepcopy(tempkey2)
-		#Initialise
-		for item in auto.varstates:
-			tempkey[str(item)] = []
-	
-	tab = txttab.Texttable()
-	headings = ['No.']
-	if showstring == 1:
-		headings.append('String')
-	if showconfig == 1:
-		headings.append('w,o,c format')
-	for v in range(len(auto.varstates)):
-		headings.append(auto.varstates[v])
-	if showposstr == 1:
-		for v in range(len(auto.varstates)):
-			headings.append(auto.varstates[v]+'str')
-
-	tab.header(headings)
-	for i in range(len(listofoutputs)):
-		temp = [i]
-		if showstring == 1:
-			temp.append(key2[i])
-		if showconfig == 1:
-			temp.append(key1[i])
-		#temp = [i,key2[i],key1[i]]
-		for v in range(len(auto.varstates)):
-			temp.append(key3[i][auto.varstates[v]])
-		if showposstr == 1:
-			for v in range(len(auto.varstates)):
-				start = int(key3[i][auto.varstates[v]][0])-1
-				end = int(key3[i][auto.varstates[v]][1])-1
-				#print('s',start,'e',end)
-				temp2 = string[start:end]
-				temp.append([temp2])
-		tab.add_row(temp)
-	
-	s = tab.draw()
-	print(s)
 
 
 """

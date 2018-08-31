@@ -1,0 +1,19 @@
+digraph {
+	rankdir=LR size="8,5"
+	node [shape=doublecircle]
+	"('4', 'E')"
+	node [shape=circle]
+	"('4', 'D')" -> "('4', 'D')" [label=a]
+	"('1', 'C')" -> "('1', 'C')" [label=a]
+	"('1', 'C')" -> "('3', 'E')" [label="&epsilon;"]
+	"('1', 'C')" -> "('4', 'D')" [label="&epsilon;"]
+	"('3', 'E')" -> "('3', 'E')" [label=a]
+	"('0', 'A')" -> "('0', 'A')" [label=a]
+	"('0', 'A')" -> "('1', 'C')" [label="&epsilon;"]
+	"('0', 'A')" -> "('2', 'B')" [label="&epsilon;"]
+	"('0', 'A')" -> "('3', 'E')" [label="&epsilon;"]
+	"('0', 'A')" -> "('4', 'D')" [label="&epsilon;"]
+	"('2', 'B')" -> "('2', 'B')" [label=a]
+	"('2', 'B')" -> "('3', 'E')" [label="&epsilon;"]
+	"('2', 'B')" -> "('4', 'D')" [label="&epsilon;"]
+}

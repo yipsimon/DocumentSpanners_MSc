@@ -332,6 +332,7 @@ def createauto(item,string,varstates,inode):
 				#		node += 1
 				#		norepeat1 = 1
 				#else:
+
 				auto.transition[str(node)] = [(str(node+1),string[i-1])]
 				auto.varconfig[str(node+1)] = copy.deepcopy(auto.varconfig[str(node)])
 				node += 1
@@ -392,7 +393,7 @@ def stringequality(string,mode,start=1,end=-1,condits=-1):
 	count = 0
 	if end == -1:
 		end = len(string)+2
-
+	stor = []
 	if mode == 2:
 		string = string.replace('\n','')
 		mode = 0
@@ -406,11 +407,11 @@ def stringequality(string,mode,start=1,end=-1,condits=-1):
 						else:
 							autostring,deststring,shortcut = combinationauto(autostring,deststring,shortcut,(i,j,k),string,['x','y'])
 						count += 1
+						stor.append( (j,string[j-1:j+i-1],k,string[k-1:k+i-1]) )
 	if mode == 1:
-		stor = []
 		for i in range(start,end):
 			for j in range(1,len(string)+2-i):
-				skip = 1
+				skip = 0
 				for k in range(1,len(string)+2-i):
 					if skip == 0:
 						if string[k+i-2] == '\n':

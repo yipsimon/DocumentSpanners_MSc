@@ -48,7 +48,7 @@ condits = [(lambda s,i,j: re.match(r'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$',s[j-1
 			(lambda s,i,j: True if j-1 == 0 else (True if re.match(r'^[^0-9]$',s[j-2]) else False) ),\
 			(lambda s,i,j: True if j+i-1 == len(string) else (True if re.match(r'^[^0-9]$',s[j+i-1]) else False) )]
 
-string, automata = sc3.stringequality(string,1,7,16,condits)
+string, automata = sc3.stringequality(string,1,12,13,condits)
 print("stringeq : %s seconds" % (time.time() - start_time))
 start_time = time.time()
 #sg.printgraphconfig(automata,automata.varconfig,'test2')
@@ -68,12 +68,14 @@ finalgraph = sc1.generateAg(automata,string)
 print("Ag graph : %s seconds" % (time.time() - start_time))
 start_time = time.time()
 
+test = sg.finalauto(automata,finalgraph)
+
 outputs = sc1.calcresults(finalgraph, len(string), automata.varconfig)
 print("Calc : %s seconds" % (time.time() - start_time))
 start_time = time.time()
 
 
-sc1.printresultsv2(outputs,automata,string,0,0,1)
+sg.printresultsv2(outputs,automata,string,0,0,1)
 print("Total Time: %s seconds" % (time.time() - start_prctime))
 #objgraph.show_most_common_types()
 
