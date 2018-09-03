@@ -172,6 +172,7 @@ def printresultsv2(listofoutputs,auto,string,showstring=0,showconfig=0,showposst
 							#Closed immediately
 							tempkey[auto.varstates[k]].append(j+1)
 							tempkey[auto.varstates[k]].append(j+1)
+							tempkey2.append(auto.varstates[k]+'+')
 							tempkey2.append(auto.varstates[k]+'-')
 						else:
 							if listofoutputs[i][j-1][k] != listofoutputs[i][j][k]:
@@ -180,6 +181,8 @@ def printresultsv2(listofoutputs,auto,string,showstring=0,showconfig=0,showposst
 								#Closed immediately if length == 1 otherwise it would have been == 2
 								if len(tempkey[auto.varstates[k]]) == 1:
 									tempkey[auto.varstates[k]].append(j+1)
+									tempkey2.remove(auto.varstates[k]+'-')
+									tempkey2.append(auto.varstates[k]+'+')
 									tempkey2.append(auto.varstates[k]+'-')
 			#Add placeholder letter for string
 			if j != len(listofoutputs[i])-1:

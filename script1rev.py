@@ -74,7 +74,7 @@ def funchk(auto):
 	openlist = {}	#Dictionary of all nodes with a set of variable states that has been opened
 	closelist = {}	#Dictionary of all nodes with a set of variable states that has been closed
 	auto.varconfig = {}	#Variable configuration values in automata object for all node in autoamta, format {'node': [/varconfigurations]}
-	key = {}		#Position of the specific variable config, i.e. [x,y] => {'x': 0, 'y': 1}
+	#key = {}		#Position of the specific variable config, i.e. [x,y] => {'x': 0, 'y': 1}
 	template = list()	#Default template for variable configuration, i.e. [w,w], the key above is used to indicate variable configuration for which variable state
 	#Note to self, the format {'node': {'varstate': varconfig, 'varstate': varconfig, ... }}, is also possible, consider for future implementation
 	
@@ -305,7 +305,8 @@ def generateAg(auto,text):
 						elif edge[1] == '[epsi]' and auto.varconfig[extranode] == auto.varconfig[edge[0]]:
 							if edge[0] == str(auto.end):
 								#Add path which end at the terminal node
-								print(currentnode)
+								#print(finalgraph[i])
+								ifnotlv3(finalgraph, i, currentnode)			
 								finalgraph[i][currentnode].add(edge[0])
 							else:
 								#if edge[0] not in seenlist:
