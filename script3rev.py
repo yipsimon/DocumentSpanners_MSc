@@ -521,7 +521,8 @@ def union(auto1,auto2,f1=0,f2=0,string=0,mode=0):
 			auto1.states.append(str(i))
 			temp[str(i)] = auto1.varconfig[i]
 		auto1.varconfig = temp
-		auto1.start = 0		
+		auto1.start = 0	
+		auto1.end = auto1.last
 		auto1.tostr()
 		#auto1.printauto()
 	elif mode == 1:

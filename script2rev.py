@@ -283,7 +283,7 @@ class formVisitor(PTNodeVisitor):
 def main(argv):
 	# Parsing
 	#different alg relation next to each other i.e a*|b require brackets (a*)|b
-	parser = ParserPython(formula, debug=True) #, reduce_tree = True)
+	parser = ParserPython(formula)#, debug=True) #, reduce_tree = True)
 	parse_tree = parser.parse(argv)
 	result = visit_parse_tree(parse_tree, formVisitor())
 	result.tostr()

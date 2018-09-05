@@ -3,7 +3,7 @@ import script3rev as sc3
 import scriptgrph as sg
 import script1rev as sc1
 import threading, time, sys, copy, objgraph, random, inspect, re
-
+'''
 automata1 = sc2.automata(0,0,0)
 automata1.reset()
 automata1.states = ['0','1','2']
@@ -32,14 +32,40 @@ sc1.csymtonulllong(automata1)
 
 sc1.funchk(automata2)
 sc1.csymtonulllong(automata2)
+sg.printgraph(automata1,'union1')
+sg.printgraph(automata1,'union2')
+sc3.union(automata1,automata2)
 
-finalgraph1 = sc1.generateAg(automata1,string)
-finalgraph2 = sc1.generateAg(automata2,string)
+sg.printgraph(automata1,'unioned')
+'''
 
-sc3.union(automata1,automata2,finalgraph1,finalgraph2,string,1)
+automata1 = sc2.automata(0,0,0)
+automata1.reset()
+automata1.states = ['0','1','2','3','4']
+automata1.varstates = ['x','y']
+automata1.transition['0'] = [('0','a'),('1','x+')]
+automata1.transition['1'] = [('1','a'),('2','y+')]
+automata1.transition['2'] = [('2','a'),('3','x-')]
+automata1.transition['3'] = [('3','a'),('4','y-')]
+automata1.transition['4'] = [('4','a')]
+automata1.start = '0'
+automata1.end = '4'
+sc1.funchk(automata1)
+sc1.csymtonulllong(automata1)
+print(automata1.varconfig)
+auto = sc3.projection(automata1,['y'])
+print(auto.varconfig)
+#finalgraph = sc1.generateAg(auto,string)
+#outputs = sc1.calcresults(finalgraph, len(string), auto.varconfig)
+#sg.printresultsv2(outputs,auto,string,1,1)
 
-outputs = sc1.calcresults(finalgraph1, len(string), automata1.varconfig)
-sg.printresultsv2(outputs,automata1,string,1,1)
+#finalgraph1 = sc1.generateAg(automata1,string)
+#finalgraph2 = sc1.generateAg(automata2,string)
+
+#sc3.union(automata1,automata2,finalgraph1,finalgraph2,string,1)
+
+#outputs = sc1.calcresults(finalgraph1, len(string), automata1.varconfig)
+#sg.printresultsv2(outputs,automata1,string,1,1)
 '''
 sc3.union(automata1,automata2)
 #automata1.printauto()

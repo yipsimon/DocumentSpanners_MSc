@@ -1,5 +1,7 @@
 import graphviz as gv
 import script1rev as sc1
+import script2rev as sc2
+import script3rev as sc3
 import functools
 import threading, time, sys, copy, re
 import texttable as txttab 
@@ -31,7 +33,7 @@ def printgraph(auto,name):
 	g = digraph()
 	g.attr(rankdir='LR', size='8,5')
 	g.attr('node', shape='doublecircle')
-	print ('end',str(auto.end))
+	#print ('end',str(auto.end))
 	add_nodes(g, [str(auto.end)])
 	g.attr('node', shape='circle')
 	edges = []
@@ -132,7 +134,7 @@ def printresults(listofoutputs):
 """
 Function to print results in a table format
 """
-def printresultsv2(listofoutputs,auto,string,showstring=0,showconfig=0,showposstr=0):
+def printresultsv2(listofoutputs,auto,string,showstring=0,showconfig=1,showposstr=0,showspan=0):
 	print ('\nResults Table')
 	key1 = {}	#key correspond from int to w,o,c format
 	key2 = {}	#key correspond from int to string format
@@ -203,11 +205,14 @@ def printresultsv2(listofoutputs,auto,string,showstring=0,showconfig=0,showposst
 		headings.append('String')
 	if showconfig == 1:
 		headings.append('w,o,c format')
-	for v in range(len(auto.varstates)):
-		headings.append(auto.varstates[v])
-	if showposstr == 1:
+	if showspan == 1:
 		for v in range(len(auto.varstates)):
-			headings.append(auto.varstates[v]+'str')
+			headings.append(auto.varstates[v])
+	if showposstr == 1:
+		headings.append('substring')
+	elif showposstr == 2:
+		for v in range(len(auto.varstates)):
+			headings.append(auto.varstates[v]+'substr')
 
 	tab.header(headings)
 	for i in range(len(listofoutputs)):
@@ -217,9 +222,16 @@ def printresultsv2(listofoutputs,auto,string,showstring=0,showconfig=0,showposst
 		if showconfig == 1:
 			temp.append(key1[i])
 		#temp = [i,key2[i],key1[i]]
-		for v in range(len(auto.varstates)):
-			temp.append(key3[i][auto.varstates[v]])
+		if showspan == 1:
+			for v in range(len(auto.varstates)):
+				temp.append(key3[i][auto.varstates[v]])
 		if showposstr == 1:
+			start = int(key3[i][auto.varstates[0]][0])-1
+			end = int(key3[i][auto.varstates[0]][1])-1
+			#print('s',start,'e',end)
+			temp2 = string[start:end]
+			temp.append([temp2])
+		elif showposstr == 2:
 			for v in range(len(auto.varstates)):
 				start = int(key3[i][auto.varstates[v]][0])-1
 				end = int(key3[i][auto.varstates[v]][1])-1
@@ -230,4 +242,88 @@ def printresultsv2(listofoutputs,auto,string,showstring=0,showconfig=0,showposst
 	
 	s = tab.draw()
 	print(s)
+
+def callreadauto(fname):
+	auto = sc1.readauto(fname)
+	return auto
+
+def regextoauto(reg):
+	auto = sc2.main(reg)
+	return auto
+
+def initauto(a,b,c):
+	auto = sc2.automata(a,b,c)
+	return auto
+
+def readlogfile(name):
+	f = open('access_log2', 'r')
+	string = f.read()
+	f.close()
+	return string
+
+def initialprocess(auto):
+	sc1.funchk(auto)
+	sc1.csymtonulllong(auto)
+
+def autoprocess(auto,string):
+	sc1.funchk(auto)
+	sc1.csymtonulllong(auto)
+	finalgraph = sc1.generateAg(auto,string)
+	if not finalgraph[-1]:
+		print('No results')
+		sys.exit(1)
+	outputgraph, outputendnode = sg.finalauto(auto,finalgraph)
+	outputs = sc1.calcresults(finalgraph, len(string), auto.varconfig)
+	printresultsv2(outputs,auto,string,1,1,1,1)
+
+def autostringequ(auto,string,mode,start,end,condits):
+	sc1.funchk(auto)
+	sc1.csymtonulllong(auto)
+	stri, auto2 = s3.stringequality(string,mode,start,end,condits)
+	auto3 = sc3.joinver1(auto,auto2)
+	finalgraph = sc1.generateAg(auto3,stri)
+	if not finalgraph[-1]:
+		print('No results')
+		sys.exit(1)
+	outputgraph, outputendnode = sg.finalauto(auto3,finalgraph)
+	outputs = sc1.calcresults(finalgraph, len(string), auto3.varconfig)
+	printresultsv2(outputs,auto,string,1,1,1,1)
+
+def callfunck(auto):
+	sc1.funchk(auto)
+
+def callcepsilon(auto):
+	sc1.csymtonulllong(auto)
+
+def callprojection(automata,listofprojections,before=0):
+	auto = sc3.projection(automata,listofprojections,before)
+	return auto
+
+def calljoin(auto1,auto2):
+	auto = sc3.joinver1(auto1,auto2)
+	return auto
+
+def callgenAg(auto,string):
+	finalgraph = sc1.generateAg(auto,string)
+	return finalgraph
+
+def callcalcresults(finalgraph, length, varconfig):
+	outputs = sc1.calcresults(finalgraph, length, varconfig)
+	return outputs
+
+def calstringeq(string,mode,start=1,end=-1,condits=-1):
+	stri, auto = s3.stringequality(string,mode,start,end,condits)
+	return stri, auto
+
+def callunion(auto1,auto2,f1=0,f2=0,string=0,mode=0):
+	sc3.union(auto1,auto2,f1,f2,string,mode)
+
+def callconcat(auto1,auto2):
+	sc3.concat(auto1,auto2)
+
+def callalpha(listings,varstates):
+	auto = sc3.alpha(listings,varstates)
+	return auto
+
+
 
