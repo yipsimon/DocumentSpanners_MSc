@@ -1,4 +1,4 @@
-import script2rev as sc2
+import script2 as sc2
 import scriptgrph as sg
 import functools
 import threading, time, sys, copy, re

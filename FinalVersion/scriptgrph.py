@@ -1,9 +1,9 @@
 import graphviz as gv
-import script1rev as sc1
-import script2rev as sc2
-import script3rev as sc3
+import script1 as sc1
+import script2 as sc2
+import script3 as sc3
 import functools
-import threading, time, sys, copy, re
+import threading, time, sys, copy, re, os
 import texttable as txttab 
 
 import functools
@@ -100,28 +100,42 @@ Input: Automata object, Graph (format: {name1: {name1.1: setvalues, name1.2: set
 Output, Graph (format: {startnode: [(endnode1,edgevalue),(endnode2,edgevalue),...],...}), end node
 """
 def finalauto(auto,graph):
+	automata = sc2.automata(0,0,0)
+	automata.reset()
+	automata.varconfig = auto.varconfig
+	automata.key = auto.key
+	automata.varstates = auto.varstates
 	finalgraph = {}
 	final = -1
+	temp = set([])
 	for positions, nodes in graph.items():
 		for begining, ending in nodes.items():
 			if positions == -1:
 				start = 'q0'
+				temp.add(start)
 			else:
 				start = (positions, begining)
+				temp.add(start)
 
-			sc1.ifnotlv1(finalgraph,str(start))
+			sc1.ifnotlv1(finalgraph,start)
 			for edge in ending:
 				value = auto.varconfig[edge]
 				end = (positions+1, edge)
 				tup = (end,value)
-				finalgraph[str(start)].append(tup)
+				finalgraph[start].append(tup)
+				temp.add(end)
 
 			if positions > final:
 				final = positions
 
 	endnode = (final+1,str(auto.end))
-
-	return finalgraph, endnode
+	temp.add(endnode)
+	automata.states = temp
+	automata.start = 'q0'
+	automata.end = endnode
+	automata.transition = finalgraph
+	return automata
+	#return finalgraph, endnode
 
 """
 Function to print results only in waiting, open and close format (w,o,c format)
@@ -198,8 +212,8 @@ def printresultsv2(listofoutputs,auto,string,showstring=0,showconfig=1,showposst
 		#Initialise
 		for item in auto.varstates:
 			tempkey[str(item)] = []
-	
-	tab = txttab.Texttable()
+	rows, columns = os.popen('stty size', 'r').read().split()
+	tab = txttab.Texttable(int(columns))
 	headings = ['No.']
 	if showstring == 1:
 		headings.append('String')
@@ -242,88 +256,4 @@ def printresultsv2(listofoutputs,auto,string,showstring=0,showconfig=1,showposst
 	
 	s = tab.draw()
 	print(s)
-
-def callreadauto(fname):
-	auto = sc1.readauto(fname)
-	return auto
-
-def regextoauto(reg):
-	auto = sc2.main(reg)
-	return auto
-
-def initauto(a,b,c):
-	auto = sc2.automata(a,b,c)
-	return auto
-
-def readlogfile(name):
-	f = open('access_log2', 'r')
-	string = f.read()
-	f.close()
-	return string
-
-def initialprocess(auto):
-	sc1.funchk(auto)
-	sc1.csymtonulllong(auto)
-
-def autoprocess(auto,string):
-	sc1.funchk(auto)
-	sc1.csymtonulllong(auto)
-	finalgraph = sc1.generateAg(auto,string)
-	if not finalgraph[-1]:
-		print('No results')
-		sys.exit(1)
-	outputgraph, outputendnode = sg.finalauto(auto,finalgraph)
-	outputs = sc1.calcresults(finalgraph, len(string), auto.varconfig)
-	printresultsv2(outputs,auto,string,1,1,1,1)
-
-def autostringequ(auto,string,mode,start,end,condits):
-	sc1.funchk(auto)
-	sc1.csymtonulllong(auto)
-	stri, auto2 = s3.stringequality(string,mode,start,end,condits)
-	auto3 = sc3.joinver1(auto,auto2)
-	finalgraph = sc1.generateAg(auto3,stri)
-	if not finalgraph[-1]:
-		print('No results')
-		sys.exit(1)
-	outputgraph, outputendnode = sg.finalauto(auto3,finalgraph)
-	outputs = sc1.calcresults(finalgraph, len(string), auto3.varconfig)
-	printresultsv2(outputs,auto,string,1,1,1,1)
-
-def callfunck(auto):
-	sc1.funchk(auto)
-
-def callcepsilon(auto):
-	sc1.csymtonulllong(auto)
-
-def callprojection(automata,listofprojections,before=0):
-	auto = sc3.projection(automata,listofprojections,before)
-	return auto
-
-def calljoin(auto1,auto2):
-	auto = sc3.joinver1(auto1,auto2)
-	return auto
-
-def callgenAg(auto,string):
-	finalgraph = sc1.generateAg(auto,string)
-	return finalgraph
-
-def callcalcresults(finalgraph, length, varconfig):
-	outputs = sc1.calcresults(finalgraph, length, varconfig)
-	return outputs
-
-def calstringeq(string,mode,start=1,end=-1,condits=-1):
-	stri, auto = s3.stringequality(string,mode,start,end,condits)
-	return stri, auto
-
-def callunion(auto1,auto2,f1=0,f2=0,string=0,mode=0):
-	sc3.union(auto1,auto2,f1,f2,string,mode)
-
-def callconcat(auto1,auto2):
-	sc3.concat(auto1,auto2)
-
-def callalpha(listings,varstates):
-	auto = sc3.alpha(listings,varstates)
-	return auto
-
-
 

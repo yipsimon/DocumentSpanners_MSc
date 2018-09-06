@@ -1,6 +1,6 @@
-import script2rev as sc2
+import script2 as sc2
 import scriptgrph as sg
-import script1rev as sc1
+import script1 as sc1
 import threading, time, sys, copy, objgraph, random, inspect, re
 
 """
@@ -389,7 +389,7 @@ def apply_conditions(s,i,j,conditions):
 	#print(temp,s[j-1:j+i-1])
 	return temp
 
-def stringequality(string,mode,start=1,end=-1,condits=-1):
+def stringequality(string,variables,mode,start=1,end=-1,condits=-1):
 	#listoftup = []
 	count = 0
 	if end == -1:
@@ -404,9 +404,9 @@ def stringequality(string,mode,start=1,end=-1,condits=-1):
 				for k in range(1,len(string)+2-i):
 					if string[j-1:j+i-1] == string[k-1:k+i-1]:
 						if count == 0:
-							autostring, deststring, shortcut = createauto((i,j,k),string,['x','y'],0)	
+							autostring, deststring, shortcut = createauto((i,j,k),string,variables,0)	
 						else:
-							autostring,deststring,shortcut = combinationauto(autostring,deststring,shortcut,(i,j,k),string,['x','y'])
+							autostring,deststring,shortcut = combinationauto(autostring,deststring,shortcut,(i,j,k),string,variables)
 						count += 1
 						stor.append( (j,string[j-1:j+i-1],k,string[k-1:k+i-1]) )
 	if mode == 1:
@@ -425,9 +425,9 @@ def stringequality(string,mode,start=1,end=-1,condits=-1):
 						
 							if othercond:
 								if count == 0:
-									autostring, deststring, shortcut = createauto((i,j,k),string,['x','y'],0)	
+									autostring, deststring, shortcut = createauto((i,j,k),string,variables,0)	
 								else:
-									autostring,deststring,shortcut = combinationauto(autostring,deststring,shortcut,(i,j,k),string,['x','y'])
+									autostring,deststring,shortcut = combinationauto(autostring,deststring,shortcut,(i,j,k),string,variables)
 								count += 1
 								stor.append( (j,string[j-1:j+i-1],k,string[k-1:k+i-1]) )
 					if skip == 1:
