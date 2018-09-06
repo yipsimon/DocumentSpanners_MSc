@@ -257,33 +257,3 @@ def printresultsv2(listofoutputs,auto,string,showstring=0,showconfig=1,showposst
 	s = tab.draw()
 	print(s)
 
-def printspan(listofoutputs,auto):
-	tempkey = {}	#Temporary store varpos value 
-	for item in auto.varstates:
-			tempkey[str(item)] = []
-
-	for j in range(len(listofoutputs)):
-		#Check for changes
-		if j == 0 or listofoutputs[j] != listofoutputs[j-1]:
-			#Iterate within w,o,c format i.e [w,w],[w,o],..., 
-			for k in range(len(listofoutputs[j])):
-				if listofoutputs[j][k] == 'o':
-					if j == 0:
-						tempkey[auto.varstates[k]].append(j+1) #+1 since we start from 0 and want 1 for pos
-					else:
-						#Compare individual variable states
-						if listofoutputs[j-1][k] != listofoutputs[j][k]:
-							tempkey[auto.varstates[k]].append(j+1)
-				
-				elif listofoutputs[j][k] == 'c':
-					if j == 0:
-						#Closed immediately
-						tempkey[auto.varstates[k]].append(j+1)
-						tempkey[auto.varstates[k]].append(j+1)
-					else:
-						if listofoutputs[j-1][k] != listofoutputs[j][k]:
-							tempkey[auto.varstates[k]].append(j+1)
-							#Closed immediately if length == 1 otherwise it would have been == 2
-							if len(tempkey[auto.varstates[k]]) == 1:
-								tempkey[auto.varstates[k]].append(j+1)
-	print(tempkey)

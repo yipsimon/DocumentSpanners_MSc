@@ -1,5 +1,5 @@
 import scriptlibrary as sp
-import time, sys, copy, re
+import time, sys, copy
 
 string = 'a'*3
 '''
@@ -126,10 +126,6 @@ sp.autostringequ(automata1,string,['x','y'],0)
 '''
 
 #Example 1
-
-start_prctime = time.time()
-start_time = time.time()
-'''
 automata1 = sp.initauto(0,0,0)
 automata1.reset()
 automata1.states = ['0','1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17']
@@ -155,76 +151,10 @@ automata1.transition['17'] = [('17','(.)')]
 automata1.start = '0'
 automata1.end = '17'
 automata1.last = 17
-'''
-'''
-regex = '(.)*,<x:[0-9],[0-9]*,.,[0-9],[0-9]*,.,[0-9],[0-9]*,.,[0-9],[0-9]*>,(.)*'
-regex2 = '(.)*,<y:[0-9],[0-9]*,/,[A-za-z],[A-za-z]*,/,[0-9],[0-9]*>,(.)*'
-automata1 = sp.regextoauto(regex)
-automata2 = sp.regextoauto(regex2)
-sp.initialprocess(automata1)
-sp.initialprocess(automata2)
-#sp.callfunck(automata1)
-#sp.callcepsilon(automata1)
-#sg.printgraph(automata1,'test00')
 
-f = open('access_log2', 'r')
-string = f.read()
-f.close() #\d+\.
+string = sp.readlogfile('access_log2')
 
-#condits = [(lambda s,i,j: re.match(r'^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$',s[j-1:j+i-1]))] #,(lambda s,i,j: s[j+i-2:j+i-1] in ['0','1','2','3','4','5','6','7','8','9'], 'true')] #,(lambda i: i % 7 == 0, "seven")]
-#,(lambda s,i,j: re.match(r'^(?<=' ')\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(?=' ')$',s[j-2:j+i-1]))]
-#(lambda s,i,j: True if j-1 == 0 else (True if re.match(r'^[^0-9]$',s[j-2]) else False) ),\
-			#(lambda s,i,j: True if j+i-1 == len(string) else (True if re.match(r'^[^0-9]$',s[j+i-1]) else False) )]
-
-condits = [(lambda s,i,j: True if re.match(r'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$',s[j-1:j+i-1]) )]#,\
-string, automata = sp.calstringeq(string,1,29,30)#,condits)
-
-print("stringeq : %s seconds" % (time.time() - start_time))
-start_time = time.time()
-#sg.printgraphconfig(automata,automata.varconfig,'test2')
-#sys.exit(1)
-#objgraph.show_most_common_types()
-#sc1.funchk(automata)
-
-sp.callcepsilon(automata)
-print("toepsilion : %s seconds" % (time.time() - start_time))
-start_time = time.time()
-
-automata = sp.calljoin(automata,automata1)
-print("Joined : %s seconds" % (time.time() - start_time))
-start_time = time.time()
-
-finalgraph = sp.callgenAg(automata,string)
-print("Ag graph : %s seconds" % (time.time() - start_time))
-start_time = time.time()
-
-#test = sg.finalauto(automata,finalgraph)
-
-outputs = sp.callcalcresults(finalgraph, len(string), automata.varconfig)
-print("Calc : %s seconds" % (time.time() - start_time))
-start_time = time.time()
-
-
-sp.callprintresultsv2(outputs,automata,string,0,0,1,1)
-print("Total Time: %s seconds" % (time.time() - start_prctime))
-#objgraph.show_most_common_types()
-'''
-
-
-automata = sp.initauto(0,0,0)
-automata.reset()
-automata.states = ['0','1','2','3']
-automata.varstates = ['x']
-automata.transition['0'] = [('0','a'),('1','x+')]
-automata.transition['1'] = [('2','a')]
-automata.transition['2'] = [('3','x-')]
-automata.transition['3'] = []
-automata.start = '0'
-automata.end = '3'
-automata.printauto()
-sp.autoprocess(automata,string,0)
-
-
+sp.autostringequ(automata1,string,['x','y'],1,12,13)
 
 
 

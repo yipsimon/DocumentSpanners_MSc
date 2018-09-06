@@ -94,7 +94,7 @@ class automata():
 		self.transition = temp3
 
 
-	def toint(self):
+	def toint(self,mode=0):
 		ref = {}
 		ref[str(self.start)] = 0
 		i = 1
@@ -123,6 +123,8 @@ class automata():
 				temp.append( (ref[str(tup[0])],tup[1]) )
 			temp3[ref[begin]] = copy.deepcopy(temp)
 		self.transition = temp3
+		if mode == 1:
+			return ref 
 		
 	def renumber(self,num):
 		self.start += num

@@ -1,0 +1,15 @@
+digraph {
+	rankdir=LR size="8,5"
+	node [shape=doublecircle]
+	4
+	node [shape=circle]
+	3 -> 3 [label="a,['c']"]
+	3 -> 4 [label="&epsilon;,['c']"]
+	0 -> 0 [label="a,['w']"]
+	0 -> 1 [label="&epsilon;,['o']"]
+	4 -> 4 [label="a,['c']"]
+	1 -> 1 [label="a,['o']"]
+	1 -> 2 [label="&epsilon;,['o']"]
+	2 -> 2 [label="a,['o']"]
+	2 -> 3 [label="&epsilon;,['c']"]
+}

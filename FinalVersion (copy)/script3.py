@@ -6,15 +6,16 @@ import threading, time, sys, copy, objgraph, random, inspect, re
 """
 This function is projection from the algebraic operation of spanners. 
 The function takes an automata object and transform the automata that only contain the desire variable statees.
-Input: Automata object, list of variable states for projections and an indicator determine 
-	whether the automata object had gone through the csymtonullong() function.
+Input: Automata object, list of variable states for projections.
 Output: A new automata object only contains the desired projections
 """
+#and an indicator determine whether the automata object had gone through the csymtonullong() function
 def projection(automata,listofprojections,before=0):
 	#Initialise a new automata object
 	auto = sc2.automata(0,0,0)
 	auto.reset()
 	auto = copy.deepcopy(automata)
+	'''
 	#If performed before csymtonulllong() function see sc1,
 	#Then, there exists edges containing the open variable states and closing variable states
 	if before == 1:
@@ -27,7 +28,7 @@ def projection(automata,listofprojections,before=0):
 						auto.transition[key].remove(edge)
 						newedge = (edge[0],'[epsi]')
 						auto.transition[key].append(newedge)
-
+	'''
 	auto.varstates = listofprojections
 	newkey = {}		#New key for new varstates
 	templist = []	#List of positions from old key for new varstates
@@ -286,22 +287,22 @@ def createauto(item,string,varstates,inode):
 	norepeat2 = 0
 	for i in range(1,len(string)+2):
 		if i == item[1]:
-			auto.transition[str(node)] = [(str(node+1),varstates[0]+'+')]
+			auto.transition[str(node)] = [(str(node+1),'[epsi]')] #varstates[0]+'+'
 			auto.varconfig[str(node+1)] = copy.deepcopy(auto.varconfig[str(node)])
 			auto.varconfig[str(node+1)][0] = 'o'
 			node += 1
 		if i == item[2]:
-			auto.transition[str(node)] = [(str(node+1),varstates[1]+'+')]
+			auto.transition[str(node)] = [(str(node+1),'[epsi]')] #varstates[1]+'+'
 			auto.varconfig[str(node+1)] = copy.deepcopy(auto.varconfig[str(node)])
 			auto.varconfig[str(node+1)][1] = 'o'
 			node += 1
 		if i == (item[0]+item[1]):
-			auto.transition[str(node)] = [(str(node+1),varstates[0]+'-')]
+			auto.transition[str(node)] = [(str(node+1),'[epsi]')] #varstates[0]+'-'
 			auto.varconfig[str(node+1)] = copy.deepcopy(auto.varconfig[str(node)])
 			auto.varconfig[str(node+1)][0] = 'c'
 			node += 1
 		if i == (item[0]+item[2]):
-			auto.transition[str(node)] = [(str(node+1),varstates[1]+'-')]
+			auto.transition[str(node)] = [(str(node+1),'[epsi]')] #varstates[1]+'-'
 			auto.varconfig[str(node+1)] = copy.deepcopy(auto.varconfig[str(node)])
 			auto.varconfig[str(node+1)][1] = 'c'
 			node += 1
@@ -388,7 +389,7 @@ def apply_conditions(s,i,j,conditions):
 	#print(temp,s[j-1:j+i-1])
 	return temp
 
-def stringequality(string,mode,start=1,end=-1,condits=-1):
+def stringequality(string,variables,mode,start=1,end=-1,condits=-1):
 	#listoftup = []
 	count = 0
 	if end == -1:
@@ -403,9 +404,9 @@ def stringequality(string,mode,start=1,end=-1,condits=-1):
 				for k in range(1,len(string)+2-i):
 					if string[j-1:j+i-1] == string[k-1:k+i-1]:
 						if count == 0:
-							autostring, deststring, shortcut = createauto((i,j,k),string,['x','y'],0)	
+							autostring, deststring, shortcut = createauto((i,j,k),string,variables,0)	
 						else:
-							autostring,deststring,shortcut = combinationauto(autostring,deststring,shortcut,(i,j,k),string,['x','y'])
+							autostring,deststring,shortcut = combinationauto(autostring,deststring,shortcut,(i,j,k),string,variables)
 						count += 1
 						stor.append( (j,string[j-1:j+i-1],k,string[k-1:k+i-1]) )
 	if mode == 1:
@@ -424,9 +425,9 @@ def stringequality(string,mode,start=1,end=-1,condits=-1):
 						
 							if othercond:
 								if count == 0:
-									autostring, deststring, shortcut = createauto((i,j,k),string,['x','y'],0)	
+									autostring, deststring, shortcut = createauto((i,j,k),string,variables,0)	
 								else:
-									autostring,deststring,shortcut = combinationauto(autostring,deststring,shortcut,(i,j,k),string,['x','y'])
+									autostring,deststring,shortcut = combinationauto(autostring,deststring,shortcut,(i,j,k),string,variables)
 								count += 1
 								stor.append( (j,string[j-1:j+i-1],k,string[k-1:k+i-1]) )
 					if skip == 1:
@@ -438,6 +439,8 @@ def stringequality(string,mode,start=1,end=-1,condits=-1):
 			for j in range(1,len(string)+2-i):
 				skip = 0
 				for k in range(1,len(string)+2-i):
+					if j == k:
+						skip == 1
 					if skip == 0:
 						if string[k+i-2] == '\n':
 							skip = 1
@@ -458,12 +461,11 @@ def stringequality(string,mode,start=1,end=-1,condits=-1):
 						if string[k-1] == '\n':
 							skip = 0
 		string = string.replace('\n','')
-
 	print('count:',count)
-	
+	'''
 	for item in stor:
 		print (repr(item))
-	
+	'''
 	print('autolast',autostring.last)
 	
 	autostring.start = str(autostring.start)
@@ -490,31 +492,25 @@ def stringequality(string,mode,start=1,end=-1,condits=-1):
 
 	return string, autostring
 
-def union(auto1,auto2):
+def union(auto1,auto2,f1=0,f2=0,string=0,mode=0):
+	if set(auto1.varstates) == set(auto2.varstates) and mode==0:
 		auto1.toint()
-		auto2.toint()
-		
+		auto2.toint()		
 		auto1.renumber(int(1))
 		auto2.renumber(int(auto1.end+1))
 		auto1.last = auto2.end+1
-
 		auto1.addedge(auto1.end,auto1.last,'[epsi]')
 		auto1.addedge(auto2.end,auto1.last,'[epsi]')
 		auto1.addedge(0,1,'[epsi]')
 		auto1.addedge(0,auto2.start,'[epsi]')
-		template1 = []
-		template2 =	[]
-		for item in auto2.varstates:
-			template1.append('w')
-			template2.append('c')
-		auto1.varconfig[0] = template1
-		auto1.varconfig[auto1.last] = template2
+		templatew = []
+		templatec = []
+		for item in auto1.varstates:
+			templatew.append('w')
+			templatec.append('c')
+		auto1.varconfig[0] = templatew
+		auto1.varconfig[auto1.last] = templatec
 		auto1.states = []
-		
-		for item in auto2.varstates:
-			if item not in auto1.varstates:
-				auto1.varstates.append(item)
-		
 		for key, item in auto2.transition.items():
 			if not key in auto1.transition:
 				auto1.transition[key] = []
@@ -525,10 +521,32 @@ def union(auto1,auto2):
 			auto1.states.append(str(i))
 			temp[str(i)] = auto1.varconfig[i]
 		auto1.varconfig = temp
-		auto1.end = auto2.end+1
-		auto1.start = 0
+		auto1.start = 0	
+		auto1.end = auto1.last
 		auto1.tostr()
 		#auto1.printauto()
+	elif mode == 1:
+		aut1 = copy.deepcopy(auto1)
+		aut2 = copy.deepcopy(auto2)
+		aut1.toint()
+		ref = aut2.toint(1)
+		for key in ref.keys():
+			ref[key] += int(aut1.end)+1
+		ref[str(aut2.end)] += 1
+		temp = {}
+		for pos in f2.keys():
+			temp[pos] = {}
+			for keys in f2[pos].keys():
+				temp[pos][str(ref[keys])] = set([])
+				for item in f2[pos][keys]:
+					temp[pos][str(ref[keys])].add(str(ref[item]))
+		last = int(aut2.end)+int(aut1.end)+1+1
+		for item in f1[len(string)-1].keys():
+			f1[len(string)-1][item] = set(str(last))
+		for pos in f1.keys():
+			f1[pos].update(temp[pos])
+	else:
+		print('automata have different variables V')
 
 def concat(auto1,auto2):
 	auto1.toint()
@@ -597,3 +615,4 @@ def main():
 
 if __name__ == "__main__":
 	main()
+

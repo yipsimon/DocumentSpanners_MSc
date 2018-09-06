@@ -23,6 +23,7 @@ def readauto(fname):
 	auto = sc2.automata(0,0,0)
 	auto.reset()
 	f = open(fname, 'r')
+	tempset = set()
 	for line in f:
 		temp = line.split(';')
 		del temp[-1]
@@ -32,8 +33,8 @@ def readauto(fname):
 			ifnotlv1(auto.transition, item[1])
 			tup = (item[1],item[2])
 			auto.transition[item[0]].append(tup)
-			auto.states.append(item[0])
-			auto.states.append(item[1])
+			tempset.add(item[0])
+			tempset.add(item[1])
 			if str(item[2][-1]) == '+':
 				if str(item[2][0]) not in auto.varstates:
 					auto.varstates.append(str(item[2][0]))
@@ -43,6 +44,7 @@ def readauto(fname):
 				auto.end = item[1]
 				auto.last = item[1]
 	f.close()
+	auto.states = tempset
 	auto.tostr()
 	return auto
 
@@ -74,7 +76,7 @@ def funchk(auto):
 	openlist = {}	#Dictionary of all nodes with a set of variable states that has been opened
 	closelist = {}	#Dictionary of all nodes with a set of variable states that has been closed
 	auto.varconfig = {}	#Variable configuration values in automata object for all node in autoamta, format {'node': [/varconfigurations]}
-	key = {}		#Position of the specific variable config, i.e. [x,y] => {'x': 0, 'y': 1}
+	#key = {}		#Position of the specific variable config, i.e. [x,y] => {'x': 0, 'y': 1}
 	template = list()	#Default template for variable configuration, i.e. [w,w], the key above is used to indicate variable configuration for which variable state
 	#Note to self, the format {'node': {'varstate': varconfig, 'varstate': varconfig, ... }}, is also possible, consider for future implementation
 	
@@ -115,7 +117,7 @@ def funchk(auto):
 					#If the openlist value of the destination node is not the same as the start node of the openlist added with the variable state that will be opened
 					#or if the closelists value does not match, (since both nodes has been processed, there should be no change since it is open transition between the nodes)
 					if op != (oq | {letter}) or cp != cq:	
-						print ('Error from opne: Obtained multiple variable configuration for one node')
+						print ('Error from open: Obtained multiple variable configuration for one node')
 						sys.exit(1)
 				else:
 					#Destination node processed, destination node is opened with corresponding variable state
@@ -135,7 +137,7 @@ def funchk(auto):
 				if seenlist & {dest}:
 					#If openlist value of start and destination node are different, or variable states is not closed at destination node
 					if op != oq  or cp != (cq | {letter}):
-						print ('not function different states for one node')
+						print ('Error from close: Different variable configuration for one node')
 						sys.exit(1)
 				else:
 					#Destination node processed, node is closed with corresponding variable state
@@ -159,6 +161,10 @@ def funchk(auto):
 					closelist[dest] = closelist[origin]	
 					auto.varconfig[dest] = copy.deepcopy(auto.varconfig[origin])
 
+	for confg in auto.varconfig[str(auto.end)]:
+		if confg != 'c':
+			print ('There exists variables in auto that are not closed')
+			sys.exit(1)
 	#Using the openlist and closelist, for each node, we can determine whether the variable state is waiting, open or closed 
 	'''
 	for node in auto.states:
@@ -305,8 +311,8 @@ def generateAg(auto,text):
 						elif edge[1] == '[epsi]' and auto.varconfig[extranode] == auto.varconfig[edge[0]]:
 							if edge[0] == str(auto.end):
 								#Add path which end at the terminal node
-								#print(currentnode)
-								ifnotlv3(finalgraph, i, currentnode)	
+								#print(finalgraph[i])
+								ifnotlv3(finalgraph, i, currentnode)			
 								finalgraph[i][currentnode].add(edge[0])
 							else:
 								#if edge[0] not in seenlist:
@@ -436,7 +442,7 @@ This is the enumeration function for obtain a list of outputs from the Ag graph.
 Input: finalgraph, totallength of text, variable configuration of all nodes.
 Output: list of list containing the variable configuration for each position of the text.
 """
-def calcresults(finalgraph,totallength,finallist,auto,printnow=0):
+def calcresults(finalgraph,totallength,finallist):
 	stacks = {}
 	availableletters = {}
 	letterofedges = {}
@@ -450,11 +456,8 @@ def calcresults(finalgraph,totallength,finallist,auto,printnow=0):
 
 	template, k = minString(-1,stacks,finalgraph,totallength,finallist,availableletters,letterofedges,['0'])
 	listofoutputs = []
-
 	while k != []:
 		listofoutputs.append(k)
-		if printnow == 1:
-			sg.printspan(k,auto)
 		k = nextString(k,stacks,finalgraph,totallength,finallist,availableletters,letterofedges,template)
 	
 	return listofoutputs
