@@ -1,0 +1,14 @@
+This library runs with python 3 and require the following package to work
+sys, time, re, copy, os, texttable, arpeggio and graphviz. 
+
+They can be installed via the command pip install 'package_name' on ubuntu. 
+To use the library, you only need to import scriptlibrary.py but makes sure all other files are in the same folder. 
+All functions you need can be called by scriptlibrary.py
+Test1.py contains a series of test of functions to try out.
+Test2.py contains a test of extracting ip addresses with log file: access_log2
+Test3.py contains a test of extracting dates with log file: access_log2
+
+It is advised to set boundary conditions for Test2.py and Test3.py. 
+Length 10-12 for Test2.py and length 10-13 for Test3.py
+
+Thank you for reading.

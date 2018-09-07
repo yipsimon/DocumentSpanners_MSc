@@ -1,0 +1,11 @@
+212.92.37.62 - - [08/Mar/2004:08:26:41 -0800] "GET / HTTP/1.1" 200 3169
+64.242.88.10 - - [07/Mar/2004:16:11:58 -0800] "GET /twiki/bin/view/TWiki/WikiSyntax HTTP/1.1" 200 7352
+10.0.0.153 - - [08/Mar/2004:09:02:32 -0800] "GET /cgi-bin/mailgraph.cgi/mailgraph_1_err.png HTTP/1.1" 200 7182
+212.92.37.62 - - [08/Mar/2004:08:27:23 -0800] "GET /twiki/bin/view/Main/SpamAssassinAndPostFix HTTP/1.1" 200 4034
+10.0.0.153 - - [08/Mar/2004:09:02:32 -0800] "GET /cgi-bin/mailgraph.cgi/mailgraph_2_err.png HTTP/1.1" 200 6805
+64.242.88.10 - - [07/Mar/2004:16:20:55 -0800] "GET /twiki/bin/view/Main/DCCAndPostFix HTTP/1.1" 200 5253
+195.246.13.119 - - [09/Mar/2004:01:51:17 -0800] "GET /twiki/bin/view/Main/DCCAndPostFix HTTP/1.1" 200 5253
+195.246.13.119 - - [09/Mar/2004:01:51:41 -0800] "GET /twiki/bin/edit/Main/RazorAndPostFix?topicparent=Main.WebHome HTTP/1.1" 401 12851
+195.246.13.119 - - [09/Mar/2004:01:51:45 -0800] "GET /twiki/pub/TWiki/TWikiDocGraphics/help.gif HTTP/1.1" 200 130
+207.195.59.160 - - [09/Mar/2004:08:08:54 -0800] "GET /twiki/pub/TWiki/TWikiLogos/twikiRobot46x50.gif HTTP/1.1" 304 -
+207.195.59.160 - - [09/Mar/2004:08:08:57 -0800] "GET /twiki/bin/view/Main/SpamAssassinTaggingOnly HTTP/1.1" 200 5691

@@ -100,8 +100,8 @@ def callfinalauto(auto,finalgraph):
 	outputgraph = sg.finalauto(auto,finalgraph)
 	return outputgraph
 
-def callcalcresults(finalgraph, length, varconfig,auto,printnow=0):
-	outputs = sc1.calcresults(finalgraph, length, varconfig,auto,printnow)
+def callcalcresults(finalgraph, length, varconfig):
+	outputs = sc1.calcresults(finalgraph, length, varconfig)
 	return outputs
 
 def calstringeq(string,mode,start=1,end=-1,condits=-1):
@@ -130,108 +130,3 @@ def callprintgraphconfig(auto,finallist,name):
 def callprintresultsv2(outputs,auto,string,a=0,b=0,c=1,d=0):
 	sg.printresultsv2(outputs,auto,string,a,b,c,d)
 
-
-'''
-print(grph1)
-u1 = sp.callfinalauto(automata1,grph1)
-u1.printauto()
-u2 = sp.callfinalauto(automata2,grph2)
-u2.printauto()
-ref = {}
-i = 0
-for stat in u1.states:
-	if stat != 'q0' and (not stat[1] in ref):
-		ref[str(stat[1])] = i
-		i += 1
-print(ref)
-tempst = ['q0']
-print(i)
-for item in u1.states:
-	if item != 'q0':
-		le = (int(item[0]),ref[str(item[1])])
-		tempst.append(le)
-
-print (tempst)
-temptr = {}
-temptr['q0'] = []
-for item in u1.transition.keys():
-	if item != 'q0':
-		temptr[(int(item[0]),ref[str(item[1])])] = []
-		for item2 in u1.transition[item]:
-			temptr[(int(item[0]),ref[str(item[1])])].append( ((item2[0][0],ref[str(item2[0][1])]),item2[1]) )
-	else:
-		for item2 in u1.transition[item]:
-			temptr['q0'].append( ((item2[0][0],ref[str(item2[0][1])]),item2[1]) )
-newv = {}
-for item in u1.varconfig.keys():
-	newv[ref[str(item)]] = u1.varconfig[item]
-u1.varconfig = newv
-te = u1.end
-u1.end = (te[0],ref[str(te[1])])
-u1.states = tempst
-u1.transition = temptr
-u1.last = i
-u1.printauto()
-sp.callprintgraph(u1,'t')
-
-
-ref2 = {}
-for stat in u1.states:
-	if stat != 'q0' and (not stat[1] in ref):
-		ref2[str(stat[1])] = i
-		i += 1
-
-
-tempst = ['q0']
-print(i)
-for item in u2.states:
-	if item != 'q0':
-		le = (int(item[0]),ref2[str(item[1])])
-		u1.states.append(le)
-
-for item in u2.transition.keys():
-	if item != 'q0':
-		u1.transition[(int(item[0]),ref2[str(item[1])])] = []
-		for item2 in u2.transition[item]:
-			if item2[0] == u2.end:
-				u1.transition[(int(item[0]),ref2[str(item[1])])].append( ((u1.end[0],u1.end[1]),item2[1]) )
-			else:
-				u1.transition[(int(item[0]),ref2[str(item[1])])].append( ((item2[0][0],ref2[str(item2[0][1])]),item2[1]) )
-	else:
-		for item2 in u2.transition[item]:
-			if item2[0] == u2.end:
-				u1.transition['q0'].append( ((u1.end[0],u1.end[1]),item2[1]) )
-			else:
-				u1.transition['q0'].append( ((item2[0][0],ref2[str(item2[0][1])]),item2[1]) )
-
-for item in u2.varconfig.keys():
-	print(ref2[str(item)])
-	u1.varconfig[ref2[str(item)]] = u2.varconfig[item]
-
-u1.printauto()
-sp.callprintgraph(u1,'t')
-sys.exit(1)
-fgrph = {}
-for pos in u1.transition.keys():
-	if pos == 'q0':
-		fgrph[-1] = {}
-		fgrph[-1]['0'] = set([])
-		for item in u1.transition['q0']:
-			fgrph[-1]['0'].add(str(item[0][1]))
-	else:
-		if not pos[0] in fgrph:
-			fgrph[pos[0]] = {}
-		fgrph[pos[0]][pos[1]] = set([])
-		print(u1.transition[pos])
-		for item in u1.transition[pos]:
-
-			fgrph[pos[0]][pos[1]].add(str(item[0][1]))
-
-
-print(fgrph)
-
-outputs = sp.callcalcresults(fgrph,len(string),u1.varconfig)
-print(outputs)
-sp.callprintresultsv2(outputs,u1,string)
-
-'''
